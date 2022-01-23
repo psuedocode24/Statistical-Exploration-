@@ -1,0 +1,258 @@
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("psych")
+
+### Exercise 1 - Descriptive Statistics ###
+### Histogram and Empirical Rule ###
+
+DescStatsEx1 <- read.csv("Exercise1.csv")
+
+## Part a Histogram ##
+library(ggplot2)
+ggplot(data = DescStatsEx1, aes(Proportion)) +
+  geom_histogram(binwidth = 0.1, col = "black", fill = "lightyellow") +
+  ggtitle("Proportion of Defective Components") +
+  labs(x = "Proportion of Defects", y = "Frequencies") +
+  theme_bw()
+
+## Create a histogram using Base R
+hist(DescStatsEx1$Proportion)
+
+## Part b ##
+
+## Find the mean
+mean_prop <- mean(DescStatsEx1$Proportion)
+mean_prop # Display the value
+
+## Find the median
+median_prop <- median(DescStatsEx1$Proportion)
+median_prop # Display the value
+
+## Part c - Empirical Rule ##
+
+## Find the std dev
+stddev <- sd(DescStatsEx1$Proportion)
+stddev # Display the value
+
+TotalSampleSize <- length(DescStatsEx1$Proportion)
+
+One_SD_Range_Lower <- mean_prop - 1*stddev
+One_SD_Range_Upper <- mean_prop + 1*stddev
+
+Num_Within_One_SD <- length(which(DescStatsEx1$Proportion >= One_SD_Range_Lower & DescStatsEx1$Proportion <= One_SD_Range_Upper))
+Percent_Within_One_SD <- 100*(Num_Within_One_SD/TotalSampleSize)
+
+Two_SD_Range_Lower <- mean_prop - 2*stddev
+Two_SD_Range_Upper <- mean_prop + 2*stddev
+
+Num_Within_Two_SD <- length(which(DescStatsEx1$Proportion >= Two_SD_Range_Lower & DescStatsEx1$Proportion <= Two_SD_Range_Upper))
+Percent_Within_Two_SD <- 100*(Num_Within_Two_SD/TotalSampleSize)
+
+Three_SD_Range_Lower <- mean_prop - 3*stddev
+Three_SD_Range_Upper <- mean_prop + 3*stddev
+
+Num_Within_Three_SD <- length(which(DescStatsEx1$Proportion >= Three_SD_Range_Lower & DescStatsEx1$Proportion <= Three_SD_Range_Upper))
+Percent_Within_Three_SD <- 100*(Num_Within_Three_SD/TotalSampleSize)
+
+sprintf("%.1f%% of the shipments are within 1SD from the mean.", Percent_Within_One_SD)
+sprintf("%.1f%% of the shipments are within 2SD from the mean.", Percent_Within_Two_SD)
+sprintf("%.1f%% of the shipments are within 3SD from the mean.", Percent_Within_Three_SD)
+
+# Determine the skewness
+
+# Function to compute skewness
+skew <- function(x){
+  m3 <- sum((x-mean(x))^3)/length(x)
+  s3 <- sqrt(var(x))^3
+  m3/s3
+}
+
+# Determining skewness for the proportion of defects
+skew(DescStatsEx1$Proportion)
+
+# Function to compute kurtosis
+kurtosis <- function(x){
+  m4 <- sum((x-mean(x))^4)/length(x)
+  s4 <- var(x)^2
+  m4/s4 - 3
+}
+
+# Determining kurtosis for the proportion of defects
+kurtosis(DescStatsEx1$Proportion)
+
+### Exercise 2 - Descriptive Statistics ###
+### Geometric Mean ###
+
+## Import the data
+DescStatsEx2 <- read.csv("Exercise2.csv")
+DescStatsEx2 ## Optional: Display
+class(DescStatsEx2) # Examine the class of the dataset object
+
+## Create a time-series object...
+## The ts() function will convert a numeric vector into an R time series object.
+## Frequency is number of observations per unit time. Annual = 1, Quarterly = 4, Monthly = 12...
+## Start = Time of the first observation
+timeseries <- ts(DescStatsEx2$Sales, frequency = 1, start = 1)
+timeseries
+class(timeseries) # Examine the class of the time series object
+
+# Compute the growth factors
+Growth_Factor <- timeseries/lag(timeseries, - 1)
+Growth_Factor ## Display the growth factors
+
+# Calculate the Geometric Mean and Display
+# Used the psych package
+library(psych)
+Geometric_Mean_Rate <- round(100*(geometric.mean(Growth_Factor)-1), digits = 2)
+Geometric_Mean_Rate
+
+sprintf("Adidas's average growth rate over 5 years is %.2f%%.", Geometric_Mean_Rate)
+
+### Exercise 3 - Descriptive Statistics ###
+### Coefficient of Variation ###
+DescStatsEx3 <- read.csv("Exercise3.csv")
+
+summary_df <- function(x) {
+  data.frame(
+    Count = length(x[!is.na(x)]),
+    Count_NA = length(x[is.na(x)]),
+    Mean = round(mean(x, na.rm = TRUE), digits = 2),
+    Median = round(median(x, na.rm = TRUE), digits = 2),
+    Min = round(min(x, na.rm = TRUE), digits = 2),
+    Max = round(max(x, na.rm = TRUE), digits = 2),
+    Range = round((max(x, na.rm = TRUE) - min(x, na.rm = TRUE)), digits = 2),
+    Variance = round(var(x, na.rm = TRUE), digits = 2),
+    StdDev = round(sd(x, na.rm = TRUE), digits = 2),
+    CV_in_Percent = round(((sd(x, na.rm = TRUE)/mean(x, na.rm = TRUE))*100), digits = 2)
+  )
+}
+
+summary_df(DescStatsEx3$Bank1)
+
+summary_df(DescStatsEx3$Bank2)
+
+### Exercise 4 - Bar Plots/Pie Charts ###
+exercise4 <- read.csv("Exercise4.csv")
+
+## Convert to a data frame
+exercise4_df = as.data.frame(exercise4)
+
+# exercise4_table = table(exercise4)
+# exercise4_table
+# 
+# exercise4_df = as.data.frame(exercise4_table)
+# exercise4_df
+
+# names(exercise4_df)[1] = "Rating"
+# exercise4_df
+
+library(dplyr)
+
+tbl_summary <- exercise4 %>%
+  group_by(Rating) %>%
+  summarise(count = n()) %>%
+  mutate(rel.freq = paste0(round(100 * count/sum(count), 0), "%")) %>%
+  arrange(desc(count))
+
+## Barplot using Base R - showing Frequency
+counts <- sort(table(exercise4), decreasing = TRUE)
+barplot(counts, main = 'RATINGS', xlab = 'Ratings', ylab = 'Frequency', las = 1, ylim = c(0, 1.1*max(counts)))
+
+## Barplot using Base R - showing Relative Frequency
+percents <- table(exercise4)/sum(table(exercise4))
+percents <- sort(percents, decreasing = TRUE)
+barplot(percents, main = 'RATINGS', xlab = 'Ratings', ylab = 'Relative Frequency', las = 1, ylim = c(0, max(percents)+0.1))
+
+## Barplot using ggplot2 - showing Frequency
+ggplot(data=tbl_summary, aes(x=reorder(Rating, -count), y=count)) +
+  geom_bar(stat="identity") + ggtitle("Distribution of Ratings") + 
+  xlab("Ratings") +
+  geom_text(aes(label=count), vjust=1.6, color="white")
+
+## Pie Chart using Base R - showing Relative Frequency
+counts <- table(exercise4)
+counts_df <- as.data.frame(counts)
+names(counts_df) <- c("Ratings", "Frequency")
+counts_df$Percent = round(100*counts_df$Frequency/sum(counts_df$Frequency), digits = 1)
+counts_df$Labels = paste(counts_df$Ratings, " (", counts_df$Percent, "%)", sep = "")
+pie(counts_df$Frequency, labels = counts_df$Labels, main = 'Satisfaction Ratings Distribution')
+
+## Pie Chart using Base R - showing Relative Frequency -- Not very useful
+ggplot(counts_df, aes(x="", y=Percent, fill=Ratings))+
+  geom_bar(width = 1, stat = "identity") + coord_polar("y", start = 0)
+
+### Exercise 5 - ScatterPlots ###
+exercise5 <- read.csv("Exercise5.csv")
+
+## Using Base R plot
+plot(exercise5$Profit, exercise5$TotalComp, main="Compensation versus Profit", 
+     xlab="Profit", ylab="CEO Compensation", pch=19)
+
+## Using Base R plot
+plot(exercise5$ThreeYrShareReturn, exercise5$TotalComp, main="Compensation versus Three Year Return", 
+     xlab="Three Year Share Return", ylab="CEO Compensation", pch=17)
+
+## Using ggplot2
+ggplot(exercise5, aes(x=Profit, y=TotalComp)) +
+  ggtitle("CEO Comp vs. Profit") + 
+  xlab("Profit") +
+  ylab("CEO Compensation") +
+  geom_point()
+
+## Using ggplot2
+ggplot(exercise5, aes(x=ThreeYrShareReturn, y=TotalComp)) +
+  ggtitle("CEO Comp vs. Three Year Share Returns") + 
+  xlab("Three Year Share Returns") +
+  ylab("CEO Compensation") +
+  geom_point()
+
+## Assessing the strength and direction of correlation
+cor(exercise5$Profit, exercise5$TotalComp) # Profit vs. Total Comp
+
+cor(exercise5$ThreeYrShareReturn, exercise5$TotalComp) # Three year Share Return vs. Total Comp
+
+### Exercise 6 - Line Charts ###
+exercise6 <- read.csv("Exercise6.csv")
+
+## Using Base R
+plot(exercise6, type="o", xlab = "Year", ylab = "Costs (in Billions $", main = "Healthcare Costs in the US")
+
+## Using ggplot2
+ggplot(data=exercise6, aes(x=Year, y=HealthCareTotal_Billions, group=1)) +
+  geom_line() +
+  ggtitle("Healthcare Costs in the US") + 
+  xlab("Years") +
+  ylab("Costs (in billions $)") +
+  geom_point()
+
+## Exercise 7 - Boxplots, Outlier detection
+exercise7 <- read.csv("Exercise7.csv")
+
+boxplot(exercise7$Size_MB, horizontal = TRUE)
+
+hist(exercise7$Size_MB)
+
+qqnorm(exercise7$Size_MB)
+qqline(exercise7$Size_MB)
+
+## Optional. Use ggplot2 to plot the boxplot.
+ggplot(data = exercise7, aes(x = '', y = Size_MB)) + geom_boxplot() + 
+  coord_flip() + xlab("") + ylab("Total Size") +
+  ggtitle("Beatles Songs Size")
+
+(Q1 <- quantile(exercise7$Size_MB, 0.25))
+(Q2 <- quantile(exercise7$Size_MB, 0.50))
+(Q3 <- quantile(exercise7$Size_MB, 0.75))
+(IQR <- IQR(exercise7$Size_MB, na.rm = TRUE))
+
+### Identify outliers
+outliervector <- with(exercise7, exercise7$Outlier <- ifelse(exercise7$Size_MB >= Q3 + 1.5*IQR, "Yes", "No"))
+exercise7["Outlier"] <- outliervector
+
+### Identify extreme outliers. Greater than 3*IQR
+extremeoutliervector <- with(exercise7, exercise7$Outlier <- ifelse(exercise7$Size_MB >= Q3+ 3*IQR, "Yes", "No"))
+exercise7["ExtremeOutlier"] <- extremeoutliervector
+
+View_Data_FINAL <- exercise7
+
+View_Data_FINAL
