@@ -1,0 +1,579 @@
+## Question 4
+
+#### Reading the data
+
+```{r}
+williamson <- read.csv("Question 4.csv")
+head(williamson)
+```
+
+#### Part 1
+
+##### Getting the confidence interval of proportion of students who are accepting williamson's offer for all students
+
+```{r}
+# Getting the 95% confidence interval of proportion of students who accepted the offer to enroll
+num_accepted <- sum(williamson$Accepted.our.offer == "Yes")
+sample_prop <- num_accepted/nrow(williamson)
+
+# Checking the large sample condition
+print(nrow(williamson)*sample_prop)
+print(nrow(williamson)*(1-sample_prop))
+
+# Since the large sample condition is satisfied, we can use the formula for getting the confidence interval
+z_critical <- qnorm(0.975, mean = 0, sd = 1, lower.tail = TRUE)
+
+lcl_prop <- sample_prop - z_critical*sqrt(sample_prop*(1-sample_prop)/nrow(williamson))
+ucl_prop <- sample_prop + z_critical*sqrt(sample_prop*(1-sample_prop)/nrow(williamson))
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval for the proportion of applicants who decide to enroll at Williamson is (", round(lcl_prop,4), ", ", round(ucl_prop,4), ")", sep=""))
+```
+
+##### Getting the same confidence interval for all students having combined score less than 330
+
+```{r}
+# Getting the 95% confidence interval of proportion of students whose combined score was less than 330
+num_applicants_330 <- sum(williamson$Combined.Score < 330  & williamson$Accepted.our.offer == "Yes")
+sample_prop_330 <- num_applicants_330/sum(williamson$Combined.Score < 330)
+
+# Checking the large sample condition
+print(nrow(williamson)*sample_prop_330)
+print(nrow(williamson)*(1-sample_prop_330))
+
+# Since the large sample condition is satisfied, we can use the formula for getting the confidence interval
+z_critical <- qnorm(0.975, mean = 0, sd = 1, lower.tail = TRUE)
+
+lcl_prop_330 <- sample_prop_330 - z_critical*sqrt(sample_prop_330*(1-sample_prop_330)/sum(williamson$Combined.Score < 330))
+ucl_prop_330 <- sample_prop_330 + z_critical*sqrt(sample_prop_330*(1-sample_prop_330)/sum(williamson$Combined.Score < 330))
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval for the proportion of applicants who scored less than 330 and decided to enroll at Williamson is (", round(lcl_prop_330,4), ", ", round(ucl_prop_330,4), ")", sep=""))
+```
+
+##### Getting the same confidence interval for all students having combined score between 330 and 375
+
+```{r}
+# Getting the 95% confidence interval of proportion of students whose combined score was between 330 and 375
+num_applicants_330_375 <- sum(williamson$Combined.Score >= 330 & williamson$Combined.Score <= 375 & williamson$Accepted.our.offer == "Yes")
+sample_prop_330_375 <- num_applicants_330_375/sum(williamson$Combined.Score >= 330 & williamson$Combined.Score <= 375)
+
+# Checking the large sample condition
+print(nrow(williamson)*sample_prop_330_375)
+print(nrow(williamson)*(1-sample_prop_330_375))
+
+# Since the large sample condition is satisfied, we can use the formula for getting the confidence interval
+z_critical <- qnorm(0.975, mean = 0, sd = 1, lower.tail = TRUE)
+
+lcl_prop_330_375 <- sample_prop_330_375 - z_critical*sqrt(sample_prop_330_375*(1-sample_prop_330_375)/sum(williamson$Combined.Score >= 330 & williamson$Combined.Score <= 375))
+ucl_prop_330_375 <- sample_prop_330_375 + z_critical*sqrt(sample_prop_330_375*(1-sample_prop_330_375)/sum(williamson$Combined.Score >= 330 & williamson$Combined.Score <= 375))
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval for the proportion of applicants who scored more than 330 and less than 375 and decided to enroll at Williamson is (", round(lcl_prop_330_375,4), ", ", round(ucl_prop_330_375,4), ")", sep=""))
+```
+
+##### Getting the same confidence interval for all students having combined score above 375
+
+```{r}
+# Getting the 95% confidence interval of proportion of students whose combined score was more than 375
+num_applicants_375 <- sum(williamson$Combined.Score > 375 & williamson$Accepted.our.offer == "Yes")
+sample_prop_375 <- num_applicants_375/sum(williamson$Combined.Score > 375)
+
+# Checking the large sample condition
+print(nrow(williamson)*sample_prop_375)
+print(nrow(williamson)*(1-sample_prop_375))
+
+# Since the large sample condition is satisfied, we can use the formula for getting the confidence interval
+z_critical <- qnorm(0.975, mean = 0, sd = 1, lower.tail = TRUE)
+
+lcl_prop_375 <- sample_prop_375 - z_critical*sqrt(sample_prop_375*(1-sample_prop_375)/sum(williamson$Combined.Score > 375))
+ucl_prop_375 <- sample_prop_375 + z_critical*sqrt(sample_prop_375*(1-sample_prop_375)/sum(williamson$Combined.Score > 375))
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval for the proportion of applicants who scored more than 375 and decided to enroll at Williamson is (", round(lcl_prop_375,4), ", ", round(ucl_prop_375,4), ")", sep=""))
+```
+
+**Comparing the confidence intervals of overall applicants and then the breakdown, we can see that there is a clear overlap in the confidence intervals of all applicants and applicants belonging in the category '<330' and between '330 and 375'. However, there is no overlap in the confidence intervals of all applicants and those belonging to the category '>375', suggesting that applicants with high combined score do not prefer to accept Williamson's offer and the authorities can look into this further**
+
+#### Part 2
+
+```{r}
+# Getting the median
+med <- median(williamson$Combined.Score)
+```
+
+##### Getting the 95% confidence interval of proportion of applicants who scored less than the median score of applicants who chose rival university
+
+```{r}
+num_applicants_went_to_rival <- sum(williamson$Combined.Score < med & williamson$Went.to.main.rival == "Yes")
+sample_prop_went_to_rival <- num_applicants_went_to_rival/sum(williamson$Combined.Score < med)
+
+# Checking the large sample condition
+print(nrow(williamson)*sample_prop_went_to_rival)
+print(nrow(williamson)*(1-sample_prop_went_to_rival))
+
+less_than_med_went_over_rival_test <- prop.test(num_applicants_went_to_rival, sum(williamson$Combined.Score < med))
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval for the applicants who scored less than median combined score and went over to Williamson's rival is (", round(less_than_med_went_over_rival_test[[6]][[1]],4), ", ", round(less_than_med_went_over_rival_test[[6]][[2]],4), ")", sep=""))
+```
+
+##### Getting the 95% confidence interval of proportion of applicants who scored greater than or equal to the median score of applicants who chose rival university
+
+```{r}
+num_applicants_went_to_rival <- sum(williamson$Combined.Score >= med & williamson$Went.to.main.rival == "Yes")
+sample_prop_went_to_rival <- num_applicants_went_to_rival/sum(williamson$Combined.Score >= med)
+
+# Checking the large sample condition
+print(nrow(williamson)*sample_prop_went_to_rival)
+print(nrow(williamson)*(1-sample_prop_went_to_rival))
+
+atleast_med_went_over_rival_test <- prop.test(num_applicants_went_to_rival, sum(williamson$Combined.Score >= med))
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval for the applicants who scored less than median combined score and went over to Williamson's rival is (", round(atleast_med_went_over_rival_test[[6]][[1]],4), ", ", round(atleast_med_went_over_rival_test[[6]][[2]],4), ")", sep=""))
+```
+
+**The applicants who scored more than median of all combined scores (essentially high scoring applicants) tend to go to Williamson's rival college more than those who scored less than median of all combined scores. This points out a serious trend in the applicants and the university should look into it.**
+  
+  #### Part 3
+  
+  ##### Applicants who chose to enroll in Williamson 
+  
+  ```{r}
+library(dplyr)
+accepted_students <- williamson %>% filter(Accepted.our.offer == "Yes")
+
+t_test_combine_score <- t.test(accepted_students$Combined.Score)
+t_test_GPA <- t.test(accepted_students$HS.GPA)
+t_test_SAT <- t.test(accepted_students$SAT)
+```
+
+```{r, echo=FALSE}
+print(paste("95% confidence interval for mean Combined score of applicants who accepted Williamson's offer to enroll: (", round(t_test_combine_score[[4]][[1]],3), ",", round(t_test_combine_score[[4]][[2]],3),")", sep=""))
+print(paste("95% confidence interval for mean High School GPA of applicants who accepted Williamson's offer to enroll: (", round(t_test_GPA[[4]][[1]],3), ",", round(t_test_GPA[[4]][[2]],3),")", sep=""))
+print(paste("95% confidence interval for mean SAT of applicants who accepted Williamson's offer to enroll: (", round(t_test_SAT[[4]][[1]],3), ",", round(t_test_SAT[[4]][[2]],3),")", sep=""))
+```
+
+##### Applicants who chose to go elsewhere
+
+```{r}
+elsewhere_students <- williamson %>% filter(Accepted.our.offer == "No")
+
+t_test_combine_score <- t.test(elsewhere_students$Combined.Score)
+t_test_GPA <- t.test(elsewhere_students$HS.GPA)
+t_test_SAT <- t.test(elsewhere_students$SAT)
+```
+
+```{r, echo=FALSE}
+print(paste("95% confidence interval for mean Combined score of applicants who chose to go elsewhere: (", round(t_test_combine_score[[4]][[1]],3), ",", round(t_test_combine_score[[4]][[2]],3),")", sep=""))
+print(paste("95% confidence interval for mean High School GPA of applicants who chose to go elsewhere: (", round(t_test_GPA[[4]][[1]],3), ",", round(t_test_GPA[[4]][[2]],3),")", sep=""))
+print(paste("95% confidence interval for mean SAT of applicants who chose to go elsewhere: (", round(t_test_SAT[[4]][[1]],3), ",", round(t_test_SAT[[4]][[2]],3),")", sep=""))
+```
+
+##### Getting confidence bounds for difference between these means
+
+```{r}
+diffMean_t_test <- t.test(accepted_students$Combined.Score, elsewhere_students$Combined.Score, var.equal = TRUE)
+diffGPA_t_test <- t.test(accepted_students$HS.GPA, elsewhere_students$HS.GPA, var.equal = TRUE)
+diffSAT_t_test <- t.test(accepted_students$SAT, elsewhere_students$SAT, var.equal = TRUE)
+```
+
+For all the confidence intervals we are considering the difference of mean as $\mu_{accepted\_applicants} - \mu_{elsewhere\_applicant}$
+  
+  ##### Combined Score
+  ```{r, echo=FALSE}
+print(paste("95% confidence interval: (", round(diffMean_t_test[[4]][[1]],3), ", ", round(diffMean_t_test[[4]][[2]],3),")", sep=""))
+```
+
+**From the interval, we can infer that the values are always negative. That implies there is a difference in the true combined score for those who accept Williamsons offer and those who chose to go elsewhere and we can observe that applicants who have higher combined means tend to not choose Williamson university which is in tandem with the findings above**
+  
+  ##### GPA
+  ```{r, echo=FALSE}
+print(paste("95% confidence interval: (", round(diffGPA_t_test[[4]][[1]],3), ", ", round(diffGPA_t_test[[4]][[2]],3),")", sep=""))
+```
+**We can observe that the given interval for the difference in GPA contains zero. That implies that GPA does not seem to play a role in determining if an applicant will choose Williamson or not.**
+  
+  ##### SAT
+  ```{r, echo=FALSE}
+print(paste("95% confidence interval: (", round(diffSAT_t_test[[4]][[1]],3), ", ", round(diffSAT_t_test[[4]][[2]],3),")", sep=""))
+```
+**We can observe that the given interval for difference in SAT score contains zero. That implies that SAT scores do not seem to be much relevant factor in determining if an applicatn will choose Williamson or not**
+  
+  #### Part 4
+  
+  ##### Applicant who were officers of atleast two clubs
+  ```{r}
+accepted_df <- williamson %>% filter(Accepted.our.offer == "Yes")
+
+num_enroll <- sum(accepted_df$HS.Clubs >= 2)
+enroll_prop_club <- num_enroll/nrow(accepted_df)
+
+enroll_prop <- prop.test(num_enroll, nrow(accepted_df))
+```
+
+```{r, echo = FALSE}
+print(paste("95% confidence interval for proportion of applicants who accepted Williamsons offer and were officers of atleast two clubs: (", round(enroll_prop$conf.int[1],3), ", ", round(enroll_prop$conf.int[2],3),")", sep=""))
+```
+
+
+##### Applicant who earned atleast 4 varsity letter
+```{r}
+accepted_df <- williamson %>% filter(Accepted.our.offer == "Yes")
+
+num_enroll <- sum(accepted_df$HS.Sports >= 4)
+enroll_prop_sports <- num_enroll/nrow(accepted_df)
+
+enroll_prop <- prop.test(num_enroll, nrow(accepted_df))
+```
+
+```{r, echo = FALSE}
+print(paste("95% confidence interval for proportion of applicants who accepted Williamsons offer and earned atleast four varsity letters: (", round(enroll_prop$conf.int[1],3), ", ", round(enroll_prop$conf.int[2],3),")", sep=""))
+```
+
+**Looking at the confidence intervals for both Sports and Clubs, Williamson seems to be attracting applicants who are good in extracurricular and there doesn't seem to be any legitimate concern from that point of view**
+
+#### Part 5
+
+##### Getting the distribution of High School sizes to estimate the large and small size High School
+
+```{r}
+quantiles <- quantile(williamson$HS.Size,c(0.1, 0.25, 0.30, 0.35, 0.5, 0.65, 0.70, 0.75, 0.9))
+quantiles
+```
+
+Assuming the bottom 30% of HS Size as Small and top 30% of HS Size as large
+
+```{r}
+HS_small <- williamson %>% filter (HS.Size <= quantile(williamson$HS.Size, 0.3))
+HS_large <- williamson %>% filter (HS.Size >= quantile(williamson$HS.Size, 0.7))
+```
+
+##### Getting the proportion of students who accepted williamson's offer
+
+```{r}
+num_accepted_hs_small <- sum(HS_small$Accepted.our.offer == "Yes")
+num_accepted_hs_large <- sum(HS_large$Accepted.our.offer == "Yes")
+
+# Calculating the sample proportion 
+sample_hs_small <- num_accepted_hs_small/nrow(HS_small)
+sample_hs_large <- num_accepted_hs_large/nrow(HS_large)
+
+# Calculating the margin of error
+z_critical <- abs(qnorm(0.025, mean=0, sd=1, lower.tail = TRUE))
+
+margin_of_error <- z_critical*sqrt((sample_hs_small*(1-sample_hs_small)/nrow(HS_small)) + (sample_hs_large*(1-sample_hs_large)/nrow(HS_large)))
+```
+
+##### Calculating the 95% confidence interval for difference in proportion of applicants accepting from small and large size high schools
+```{r}
+lower_bound <- (sample_hs_small - sample_hs_large) - margin_of_error
+upper_bound <- (sample_hs_small - sample_hs_large) + margin_of_error
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval for difference in proportion of accepting applicants from small size high school to that of large size high school is (", round(lower_bound,4), ", ", round(upper_bound,4), ")", sep = ""))
+```
+
+**We can conclude that Williamson university attract high ranking applicants from high school with small sizes than applicants from high school with large size as per the above mentioned definition**
+  
+  ##### Calculating the 95% confidence interval for difference in mean combined score of applicants accepting from small and large size high schools
+  
+  ```{r}
+# Checking equality of variances to compare combined scores of Large and Small sized high schools
+vartests <- var.test(HS_small$Combined.Score, HS_large$Combined.Score)
+vartests
+```
+
+**Based on the p-value we can conclude that the variances are equal**
+  
+  ```{r}
+# Checking difference of mean of combined score of small and large sized high school
+test <- t.test(HS_small$Combined.Score, HS_large$Combined.Score, var.equal = TRUE)
+test
+```
+
+**Based on the data of differences of mean of combined score of small and large sized high schools, the university manages to attract high ranking applicants from small sized high school. Although, their overall combined score tends to be lower than the applicants from high school with large size**
+  
+  ## Question 5
+  
+  #### Reading the data
+  
+  ```{r}
+delivery <- read.csv("Question 5.csv")
+
+# Calculating the total delivery time
+delivery$Total.Time <- delivery$Prep.Time + delivery$Travel.Time
+
+# Calculating the average speed of the deliverers
+delivery$Speed <- delivery$Distance*60/delivery$Travel.Time
+head(delivery)
+```
+
+```{r}
+deliverer_1 <- delivery %>% filter(Deliverer == 1)
+deliverer_2 <- delivery %>% filter(Deliverer == 2)
+deliverer_3 <- delivery %>% filter(Deliverer == 3)
+deliverer_4 <- delivery %>% filter(Deliverer == 4)
+```
+
+#### Part 1 (A): Getting the 95% confidence interval for mean travel time and mean total time of delivery
+
+##### Deliverer 1
+
+**Mean Travel Time**
+  ```{r}
+deliverer_1_test <- t.test(deliverer_1$Travel.Time)
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval of mean travel time for deliverer 1 is (", round(deliverer_1_test$conf.int[1],4), ", ", round(deliverer_1_test$conf.int[2],4), ")", sep = ""))
+```
+
+**Mean Total Time**
+  ```{r}
+deliverer_1_test_total <- t.test(deliverer_1$Total.Time)
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval of mean total time for deliverer 1 is (", round(deliverer_1_test_total$conf.int[1],4), ", ", round(deliverer_1_test_total$conf.int[2],4), ")", sep = ""))
+```
+
+##### Deliverer 2
+
+**Mean Travel Time**
+  ```{r}
+deliverer_2_test <- t.test(deliverer_2$Travel.Time)
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval of mean travel time for deliverer 2 is (", round(deliverer_2_test$conf.int[1],4), ", ", round(deliverer_2_test$conf.int[2],4), ")", sep = ""))
+```
+
+**Mean Total Time**
+  ```{r}
+deliverer_2_test_total <- t.test(deliverer_2$Total.Time)
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval of mean total time for deliverer 2 is (", round(deliverer_2_test_total$conf.int[1],4), ", ", round(deliverer_2_test_total$conf.int[2],4), ")", sep = ""))
+```
+
+##### Deliverer 3
+
+**Mean Travel Time**
+  ```{r}
+deliverer_3_test <- t.test(deliverer_3$Travel.Time)
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval of mean travel time for deliverer 3 is (", round(deliverer_3_test$conf.int[1],4), ", ", round(deliverer_3_test$conf.int[2],4), ")", sep = ""))
+```
+
+**Mean Total Time**
+  ```{r}
+deliverer_3_test_total <- t.test(deliverer_3$Total.Time)
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval of mean total time for deliverer 3 is (", round(deliverer_3_test_total$conf.int[1],4), ", ", round(deliverer_3_test_total$conf.int[2],4), ")", sep = ""))
+```
+
+##### Deliverer 4
+
+**Mean Travel Time**
+  ```{r}
+deliverer_4_test <- t.test(deliverer_4$Travel.Time)
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval of mean travel time for deliverer 4 is (", round(deliverer_4_test$conf.int[1],4), ", ", round(deliverer_4_test$conf.int[2],4), ")", sep = ""))
+```
+
+**Mean Total Time**
+  ```{r}
+deliverer_4_test_total <- t.test(deliverer_4$Total.Time)
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval of mean total time for deliverer 4 is (", round(deliverer_4_test_total$conf.int[1],4), ", ", round(deliverer_4_test_total$conf.int[2],4), ")", sep = ""))
+```
+
+**Despite the confidence levels suggesting a trend, we cannot make reliable inferences based on this data because of two factors**  
+  **1) We have not factored in an important parameter 'Distance'. We need to factor in the distance as well to comment whether the deliverer is taking more time because of slacking off or is it because of legitimate reasons**  
+  **2) The confidence intervals we observe are highly overlapping in general, which does not allow us to make accurate inferences on the behavior of the delivery people**
+  
+  #### Part 1 (B): Getting the 95% confidence interval of mean speed of delivery for each deliverer
+  
+  ##### Deliverer 1, 2
+  
+  ```{r}
+deliverer_1_2 <- t.test(deliverer_1$Speed, deliverer_2$Speed, var.equal = TRUE)
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval of difference of mean speed for deliverer 1 and 2 is (", round(deliverer_1_2$conf.int[1],4), ", ", round(deliverer_1_2$conf.int[2],4), ")", sep = ""))
+```
+
+##### Deliverer 1, 3
+
+```{r}
+deliverer_1_3 <- t.test(deliverer_1$Speed, deliverer_3$Speed, var.equal = TRUE)
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval of difference of mean speed for deliverer 1 and 3 is (", round(deliverer_1_3$conf.int[1],4), ", ", round(deliverer_1_3$conf.int[2],4), ")", sep = ""))
+```
+
+##### Deliverer 1, 4
+
+```{r}
+deliverer_1_4 <- t.test(deliverer_1$Speed, deliverer_4$Speed, var.equal = TRUE)
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval of difference of mean speed for deliverer 1 and 4 is (", round(deliverer_1_4$conf.int[1],4), ", ", round(deliverer_1_4$conf.int[2],4), ")", sep = ""))
+```
+
+##### Deliverer 2, 3
+
+```{r}
+deliverer_2_3 <- t.test(deliverer_2$Speed, deliverer_3$Speed, var.equal = TRUE)
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval of difference of mean speed for deliverer 2 and 3 is (", round(deliverer_2_3$conf.int[1],4), ", ", round(deliverer_2_3$conf.int[2],4), ")", sep = ""))
+```
+
+##### Deliverer 2, 4
+
+```{r}
+deliverer_2_4 <- t.test(deliverer_2$Speed, deliverer_4$Speed, var.equal = TRUE)
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval of difference of mean speed for deliverer 2 and 4 is (", round(deliverer_2_4$conf.int[1],4), ", ", round(deliverer_2_4$conf.int[2],4), ")", sep = ""))
+```
+
+##### Deliverer 3, 4
+
+```{r}
+deliverer_3_4 <- t.test(deliverer_3$Speed, deliverer_4$Speed, var.equal = TRUE)
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval of difference of mean speed for deliverer 3 and 4 is (", round(deliverer_3_4$conf.int[1],4), ", ", round(deliverer_3_4$conf.int[2],4), ")", sep = ""))
+```
+
+**We can observe that deliverer 2 is more efficient in terms of speed than deliverer 1, 3 and 4**  
+  **Deliver 1 is more efficient than 3 and 4**  
+  **We cannot comment on the efficiency of deliverers 3 and 4**
+  
+  #### Part 2 (A)
+  
+  ```{r}
+deliveries_less_than_10 <- delivery %>% filter (Distance <= 10)
+```
+
+##### For M = 25
+```{r}
+m <- 25
+del_less_than_m <- sum(deliveries_less_than_10$Total.Time <= 25)
+less_than_25_prop_test <- prop.test(del_less_than_m, nrow(deliveries_less_than_10))
+less_than_25_prop_test
+```
+
+```{r, echo=FALSE}
+print(paste("The confidence interval of in time orders when M = 25 minutes is (", round(less_than_25_prop_test[[6]][[1]],3), ", ", round(less_than_25_prop_test[[6]][[2]],3), ")",sep = ""))
+```
+
+##### For M = 30
+```{r}
+m <- 30
+del_less_than_m <- sum(deliveries_less_than_10$Total.Time <= 30)
+less_than_30_prop_test <- prop.test(del_less_than_m, nrow(deliveries_less_than_10))
+less_than_30_prop_test
+```
+
+```{r, echo=FALSE}
+print(paste("The confidence interval of in time orders when M = 30 minutes is (", round(less_than_30_prop_test[[6]][[1]],3), ", ", round(less_than_30_prop_test[[6]][[2]],3), ")",sep = ""))
+```
+
+##### For M = 35
+```{r}
+m <- 35
+del_less_than_m <- sum(deliveries_less_than_10$Total.Time <= 35)
+less_than_35_prop_test <- prop.test(del_less_than_m, nrow(deliveries_less_than_10))
+less_than_35_prop_test
+```
+
+```{r, echo=FALSE}
+print(paste("The confidence interval of in time orders when M = 30 minutes is (", round(less_than_35_prop_test[[6]][[1]],3), ", ", round(less_than_35_prop_test[[6]][[2]],3), ")",sep = ""))
+```
+
+#### Part 2 (B)
+
+##### M = 25
+
+```{r}
+lower_bound_25 <- ceiling((1 - less_than_25_prop_test[[6]][[2]]) * 1000) * 10
+upper_bound_25 <- ceiling((1 - less_than_25_prop_test[[6]][[1]]) * 1000) * 10
+```
+
+```{r, echo=FALSE}
+print(paste("The restaurant would have to pay ", round(lower_bound_25,2), " to ", round(upper_bound_25,2), " in dollar amount in certificates for being late", sep=""))
+```
+
+##### M = 30
+
+```{r}
+lower_bound_30 <- ceiling((1 - less_than_30_prop_test[[6]][[2]]) * 1000) * 10
+upper_bound_30 <- ceiling((1 - less_than_30_prop_test[[6]][[1]]) * 1000) * 10
+```
+
+```{r, echo=FALSE}
+print(paste("The restaurant would have to pay ", round(lower_bound_30,2), " to ", round(upper_bound_30,2), " in dollar amount in certificates for being late", sep=""))
+```
+
+##### M = 35
+
+```{r}
+lower_bound_35 <- ceiling((1 - less_than_35_prop_test[[6]][[2]]) * 1000) * 10
+upper_bound_35 <- ceiling((1 - less_than_35_prop_test[[6]][[1]]) * 1000) * 10
+```
+
+```{r, echo=FALSE}
+print(paste("The restaurant would have to pay ", round(lower_bound_35,2), " to ", round(upper_bound_35,2), " in dollar amount in certificates for being late", sep=""))
+```
+
+#### Part 3 (A)
+
+```{r}
+delivery$Pred.Time <- round(14.8 + 2.06*delivery$Distance,0) + 5
+
+num_ontime_deliveries <- sum(delivery$Total.Time <= delivery$Pred.Time)
+
+ontime_delivery_prop_test <- prop.test(num_ontime_deliveries, nrow(delivery))
+ontime_delivery_prop_test
+```
+
+```{r, echo=FALSE}
+print(paste("The 95% confidence interval for the proportion of all on time deliveries is (", round(ontime_delivery_prop_test[[6]][[1]],4), ", ",round(ontime_delivery_prop_test[[6]][[2]],4),")", sep=""))
+```
+
+#### Part 3 (B)
+
+```{r}
+lower_bound_dlvry <- ceiling((1 - ontime_delivery_prop_test[[6]][[2]]) * 1000) * 10
+upper_bound_dlvry <- ceiling((1 - ontime_delivery_prop_test[[6]][[1]]) * 1000) * 10
+```
+
+```{r, echo=FALSE}
+print(paste("The restaurant would have to pay ", round(lower_bound_dlvry,2), " to ", round(upper_bound_dlvry,2), " in dollar amount in certificates for being late", sep=""))
+```
