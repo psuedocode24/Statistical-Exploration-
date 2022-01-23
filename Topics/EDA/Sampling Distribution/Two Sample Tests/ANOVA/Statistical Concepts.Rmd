@@ -1,0 +1,982 @@
+######Final Exam######
+
+####Question 1####
+#Please clearly state the objective, type of data, experimental design used, 
+#definition of each population, the statistical technique used, 
+#and the hypotheses corresponding to the statis- tical technique chosen. 
+#Since a statistical technique needs to be chosen in this question, 
+#you should run the check for the required conditions.
+
+##Objective: To check if there is significant mean difference between the prices shown and the prices not shown for house sale ads.
+##Type Of Data: Interval Data Type which is paired.
+##Experimental Design: Randomized Design.
+##Two populations: Houses with the price shown and the houses with the prices not shown.
+##Statistical Technique Used: Two Sample T-Test for Paired Data
+##H0: mu_D <= D_0
+##H1: mu_D > D_0
+
+##Required Conditions:
+#1. The Samples are random : TRUE
+#2. The Samples are dependent(paired) : TRUE
+#3. N >= 30 : TRUE
+#All the required conditions are met.
+##Read the csv file
+Ques1 <- read.csv("Real Estate Ads.csv")
+
+##Compute the differences
+library(dplyr)
+difference <- Ques1 %>% mutate(diff = Price.shown - Price.not.shown) %>% pull(diff)
+
+##Assess Normality
+hist(difference)
+##Not a complete normal distribution
+
+##Running a paired sample t-test
+t.test(Ques1$Price.not.shown, Ques1$Price.shown, alternative = "greater", mu = 0, paired = TRUE)
+
+##As can be seen from both the tests that there is a statistically mean difference between the houses with the price shown and the prices not shown. In the 5% levels of significance there is no difference between these values.
+##The alternative hypothesis is true.
+
+
+####Question 2####
+##Objective: To test whether the proportion of household watching the show is less than 0.14
+##H0: p>= 0.14
+##H1: p< 0.14
+##Using the test statistic principle for the lower tailed test
+##As the alternative hypothesis is one tailed of less than variety
+##Formula: Z = (p_hat - p)/sqrt(p(1-p)/n) -N(0,1)
+
+##To reject the null hypothesis(H0) it is necessary to have a value of sample proportion such that for this value we have p <=alpha
+##From Normal Probablity Tables: P(Z <= - 1.64485) = 0.05
+##Thus rejecting H0 if:Z<= -1.64485
+p = 0.14
+n = 1500
+
+p1 <- ((p*(1-p))/n)
+p2 <- sqrt(p1)
+p_hat <- ((- 1.64485 * p2) + p)
+p_hat
+
+##Thus reject H0 if p<=0.1252635
+
+##To compute the probability that the show will be cancelled if 13.4% of all viewing households are watching it then probability is:
+##P(reject H0|p = 0.134) -> P(p_hat<=0.1252635|p=0.134)
+p <- 0.134
+P <- (p_hat - p)/p2
+
+
+##Now evaluating p-value which is the probability beyond calculated value at the left side of N(0,1)
+pnorm(-1.64485, 0, 1, lower.tail = TRUE)
+pnorm(-0.9751449, 0, 1, lower.tail = TRUE)
+##Hence the Probability is 5% and 16% respectively for 14% and 13.4% viewing rate
+
+####Question 3####
+##Objective: To assess the retention by BAY of different categories of employees in 95% Confidence Interval
+
+library(dplyr)
+
+Ques2 <- read.csv("BAY.csv")
+
+##Information on all employees who stay at least three years with BAY
+df_emp_3 <- Ques2 %>% filter (Stayed.3.Years == "Yes")
+sample_mean <- mean(df_emp_3$Starting.Salary)
+n <- length(df_emp_3$Starting.Salary)
+sample_sd <- sd(df_emp_3$Starting.Salary)
+
+### For 95% confidence...z95 <- qnorm(0.975, mean = 0, sd = 1, lower.tail = TRUE)
+z95 <- qnorm(0.95, mean = 0, sd = 1, lower.tail = TRUE)
+### 95% Confidence Interval
+l95 <- sample_mean - (z95*sample_sd/sqrt(n))
+r95 <- sample_mean + (z95*sample_sd/sqrt(n))
+
+l95_rounded <- round(l95, digits = 3)
+r95_rounded <- round(r95, digits = 3)
+
+### Display 95% CI
+sprintf("95 percent Confidence Interval: (%s, %s)", l95_rounded, r95_rounded)
+sprintf("INTERPRETATION: We might be 95 percent confident that the interval between %s lbs and %s lbs contains the true population mean strength of all the employees for the mean starting salary of all employees who stay at least three years with BAY.", l95_rounded, r95_rounded)
+
+## Information on all employees who leave before three years with BAY
+
+df_emp_3l <- Ques2 %>% filter (Stayed.3.Years == "No")
+sample_mean1 <- mean(df_emp_3l$Starting.Salary)
+n1 <- length(df_emp_3l$Starting.Salary)
+sample_sd1 <- sd(df_emp_3l$Starting.Salary)
+
+### For 95% confidence...z95 <- qnorm(0.975, mean = 0, sd = 1, lower.tail = TRUE)
+z95_1 <- qnorm(0.95, mean = 0, sd = 1, lower.tail = TRUE)
+### 95% Confidence Interval
+l95_1 <- sample_mean1 - (z95*sample_sd1/sqrt(n1))
+r95_1 <- sample_mean1 + (z95*sample_sd1/sqrt(n1))
+
+l95_rounded_1 <- round(l95_1, digits = 3)
+r95_rounded_1 <- round(r95_1, digits = 3)
+
+### Display 95% CI
+sprintf("95 percent Confidence Interval: (%s, %s)", l95_rounded_1, r95_rounded_1)
+sprintf("INTERPRETATION: We might be 95 percent confident that the interval between %s lbs and %s lbs contains the true population mean strength of all the employees for the mean starting salary of all employees who leave before three years with BAY..", l95_rounded_1, r95_rounded_1)
+
+## Information for the difference between the above two means
+di_means <- sample_mean1 - sample_mean
+mean_di <- mean(di_means)
+sd_di <- sd(di_means)
+
+
+
+### For 95% confidence...z95 <- qnorm(0.975, mean = 0, sd = 1, lower.tail = TRUE)
+t.test(df_emp_3l$Starting.Salary, df_emp_3$Starting.Salary, alternative = "two.sided", mu = 0, paired = FALSE, var.equal = TRUE)
+
+
+l95_rounded_di <- 37381.25
+r95_rounded_di <- 38555.88
+
+### Display 95% CI
+sprintf("95 percent Confidence Interval: (%s, %s)", l95_rounded_di, r95_rounded_di)
+sprintf("INTERPRETATION: We might be 95 percent confident that the interval between %s lbs and %s lbs contains the true population mean of all the empoloyees for the difference between the means.", l95_rounded_di, r95_rounded_di)
+
+
+## Information on employees whose starting salary is less than or equal to the median (37, 750) and who stay with BAY for at least three years.
+
+df_emp_3_sal <- Ques2 %>% filter (Stayed.3.Years == "Yes") %>% filter(Starting.Salary <= 37750 )
+prop.test(nrow(df_emp_3_sal), nrow(Ques2), conf.level = 0.95, correct = FALSE)
+##1-sample proportions test without continuity correction
+
+l95_rounded_sal <- 0.2055
+r95_rounded_sal <- 0.4221
+
+
+#### Interpretation
+sprintf("INTERPRETATION: We are 95 percent confident that the interval between %.1f %% and %.1f %% contains the true population proportion of all employees whose starting salary is less than or equal to the median(37,750) for the proportion of the employees who stay with BAY for at least three years..", l95_rounded_sal*100, r95_rounded_sal*100)
+#### We are 95% confident that the interval between 20.55% and 42.21% contains the true population proportion of all employees whose starting salary is less than or equal to the median(37,750) for the proportion of the employees who stay with BAY for at least three years..
+
+
+##Information on employees whose starting salary is more than the median (37, 750) and who stay with BAY for at least three years.
+
+df_emp_3_sal1 <- Ques2 %>% filter (Stayed.3.Years == "Yes") %>% filter(Starting.Salary > 37750 )
+prop.test(nrow(df_emp_3_sal1), nrow(Ques2), conf.level = 0.95, correct = FALSE)
+
+l95_rounded_sal <- 0.1071
+r95_rounded_sal <- 0.2914
+
+#### Interpretation
+sprintf("INTERPRETATION: We are 95 percent confident that the interval between %.1f %% and %.1f %% contains the true population proportion of all employees whose starting salary is greater than the median(37, 750) and who stay with BAY for at least three years..", l95_rounded_sal*100, r95_rounded_sal*100)
+#### We are 95% confident that the interval between 10.71% and 29.14% the true population proportion of all employees whose starting salary is greater than the median(37,750) for the proportion of the employees who stay with BAY for at least three years..
+
+
+### For 95% confidence...z95 <- qnorm(0.975, mean = 0, sd = 1, lower.tail = TRUE)
+t.test(df_emp_3_sal$Starting.Salary, df_emp_3_sal1$Starting.Salary, alternative = "two.sided", mu = 0, paired = FALSE, var.equal = FALSE)
+
+
+l95_rounded_di <- 36265.00
+r95_rounded_di <- 39241.67
+
+### Display 95% CI
+sprintf("95 percent Confidence Interval: (%s, %s)", l95_rounded_di, r95_rounded_di)
+sprintf("INTERPRETATION: We might be 95 percent confident that the interval between %s lbs and %s lbs contains the true population proportion difference of all the employees with the respective starting salaries.", l95_rounded_di, r95_rounded_di)
+
+
+##Information on all employees who stay at least three years with BAY
+library(stringr)
+Ques2$On.Road.Pct <- as.numeric(str_replace(Ques2$On.Road.Pct, "\\%", ""))
+df_emp_3 <- Ques2 %>% filter (Stayed.3.Years == "Yes")
+prop.test(nrow(df_emp_3), nrow(Ques2), conf.level = 0.95, correct = FALSE)
+
+l95_rounded <- 0.36846
+r95_rounded <- 0.60289
+
+### Display 95% CI
+sprintf("95 percent Confidence Interval: (%s, %s)", l95_rounded, r95_rounded)
+sprintf("INTERPRETATION: We might be 95 percent confident that the interval between %s lbs and %s lbs contains the true population mean for the mean the percentage of time on the road of all employees who stay at least three years with BAY.", l95_rounded*100, r95_rounded*100)
+
+## Information on all employees who leave before three years with BAY
+library(stringr)
+Ques2$On.Road.Pct <- as.numeric(str_replace(Ques2$On.Road.Pct, "\\%", ""))
+df_emp_3l <- Ques2 %>% filter (Stayed.3.Years == "No")
+prop.test(nrow(df_emp_3l), nrow(Ques2), conf.level = 0.95, correct = FALSE)
+
+l95_rounded_1 <- 0.3971
+r95_rounded_1 <- 0.6315
+
+
+### Display 95% CI
+sprintf("95 percent Confidence Interval: (%s, %s)", l95_rounded_1, r95_rounded_1)
+sprintf("INTERPRETATION: We might be 95 percent confident that the interval between %s lbs and %s lbs contains the true population mean for the mean the percentage of time on the road of all employees who leave before three years with BAY.", l95_rounded_1*100, r95_rounded_1*100)
+
+## Information for the difference between the above two means
+di_means <- sample_mean1 - sample_mean
+mean_di <- mean(di_means)
+sd_di <- sd(di_means)
+
+
+### For 95% confidence...z95 <- qnorm(0.975, mean = 0, sd = 1, lower.tail = TRUE)
+t.test(df_emp_3l$On.Road.Pct, df_emp_3$On.Road.Pct, paired = FALSE, var.equal = TRUE, conf.level = 0.95)
+
+## Information on employees whose starting salary is less than or equal to the median on the road percent and who stay with BAY for at least three years.
+library(stringr)
+Ques2$On.Road.Pct <- as.numeric(str_replace(Ques2$On.Road.Pct, "\\%", ""))
+
+df_emp_3_sal <- Ques2 %>% filter (Stayed.3.Years == "Yes") %>% filter(On.Road.Pct <= median(On.Road.Pct) )
+prop.test(nrow(df_emp_3_sal), nrow(Ques2), conf.level = 0.95, correct = FALSE)
+
+l95_rounded_sal <- 0.1674
+r95_rounded_sal <- 0.3743
+
+### Display 95% CI
+sprintf("95 percent Confidence Interval: (%s, %s)", l95_rounded_sal, r95_rounded_sal)  
+
+#### Interpretation
+sprintf("INTERPRETATION: We are 95 percent confident that the interval between %.1f %% and %.1f %% contains the true population proportion of all employees whose starting salary is less than or equal to the median of the employees' percentage of time on the road who stay with BAY for at least three years..", l95_rounded_sal*100, r95_rounded_sal*100)
+#### We are 95% confident that the interval between 16.74% and 37.43% contains the true population proportion of all employees whose starting salary is less than or equal to the median of the employees' percentage of time on the road who stay with BAY for at least three years..
+
+
+##Information on employees whose starting salary is more than the median on road percent and who stay with BAY for at least three years.
+Ques2$On.Road.Pct <- as.numeric(str_replace(Ques2$On.Road.Pct, "\\%", ""))
+df_emp_3_sal1 <- Ques2 %>% filter (Stayed.3.Years == "Yes") %>% filter(On.Road.Pct > median(On.Road.Pct) )
+prop.test(nrow(df_emp_3_sal1), nrow(Ques2), conf.level = 0.95, correct = FALSE)
+
+l95_rounded_sal <- 0.1428
+r95_rounded_sal <- 0.3416
+
+### Display 95% CI
+sprintf("95 percent Confidence Interval: (%s, %s)", l95_rounded_sal, r95_rounded_sal)  
+
+#### Interpretation
+sprintf("INTERPRETATION: We are 95 percent confident that the interval between %.1f %% and %.1f %% contains the true population proportion of all employees whose starting salary is greater than the median of the employees' percentage of time on the road who stay with BAY for at least three years..", l95_rounded_sal*100, r95_rounded_sal*100)#### We are 95% confident that the interval between 23.6% and 36.4% contains#### the true proportion of toothpaste customers who prefer Crest.rval between %s lbs and %s lbs contains the true population mean strength of all bags.", l95_rounded, r95_rounded)
+
+
+### For 95% confidence...z95 <- qnorm(0.975, mean = 0, sd = 1, lower.tail = TRUE)
+t.test(df_emp_3_sal$On.Road.Pct, df_emp_3_sal1$On.Road.Pct, paired = FALSE, var.equal = TRUE, conf.level = 0.95)
+
+
+l95_rounded_di <- 32.29412
+r95_rounded_di <- 59.46667
+
+### Display 95% CI
+sprintf("95 percent Confidence Interval: (%s, %s)", l95_rounded_di, r95_rounded_di)
+sprintf("INTERPRETATION: We might be 95 percent confident that the interval between %s lbs and %s lbs contains the true population proportion for the difference between these proportions.", l95_rounded_di, r95_rounded_di)
+
+##Information on all employees' mean tenure who leave BAY within three years 
+df_emp_3 <- Ques2 %>% filter (Stayed.3.Years == "No") %>% filter(Tenure < 3 )
+prop.test(nrow(df_emp_3), nrow(Ques2), conf.level = 0.95, correct = FALSE)
+
+l95_rounded <- 0
+r95_rounded <- 0.05500
+
+
+### Display 95% CI
+sprintf("95 percent Confidence Interval: (%s, %s)", l95_rounded, r95_rounded)
+sprintf("INTERPRETATION: We might be 95 percent confident that the interval between %s lbs and %s lbs contains the true population for the mean tenure (in months) of all em- ployees who leave BAY within three years of being hired..", l95_rounded, r95_rounded)
+
+##It seems improbable to estimate the confidence interval for the mean tenure at BAY because the tenure for employees who stay for more than 3 years are not provided in the data sheet.
+
+##Information on all employees who stay with BAY for three years and from a State University
+
+df_emp_3 <- Ques2 %>% subset(Stayed.3.Years == "Yes" & State.Univ == "Yes" )
+prop.test(nrow(df_emp_3), nrow(Ques2), conf.level = 0.95, correct = FALSE)
+
+l95_rounded_sal <- 0.1188
+r95_rounded_sal <- 0.3083
+
+
+### Display 95% CI
+sprintf("95 percent Confidence Interval: (%s, %s)", l95_rounded_sal, r95_rounded_sal)  
+
+#### Interpretation
+sprintf("INTERPRETATION: We are 95 percent confident that the interval between %.1f %% and %.1f %% contains the true population proportion for proportion of employees who stayed 3 years and attended the State University.", l95_rounded_sal*100, r95_rounded_sal*100)
+#### We are 95% confident that the interval between 11.88% and 30.83% contains the true population proportion for proportion of employees who stayed 3 years and attended the State University.
+##Information on all employees who stay with BAY for three years and not from a State University.
+
+df_emp_3 <- Ques2 %>% subset(Stayed.3.Years == "Yes" & State.Univ == "No" )
+prop.test(nrow(df_emp_3), nrow(Ques2), conf.level = 0.95, correct = FALSE)
+
+l95_rounded_sal <- 0.1927
+r95_rounded_sal <- 0.4063
+
+
+### Display 95% CI
+sprintf("95 percent Confidence Interval: (%s, %s)", l95_rounded_sal, r95_rounded_sal)  
+
+#### Interpretation
+sprintf("INTERPRETATION: We are 95 percent confident that the interval between %.1f %% and %.1f %% contains the true population proportion for proportion of employees who stayed 3 years and have not attended the State University.", l95_rounded_sal*100, r95_rounded_sal*100)
+#### We are 95% confident that the interval between 19.27% and 40.63% contains the true population proportion for proportion of employees who stayed 3 years and have not attended the State University.
+
+
+##Information on all employees who stay with BAY for three years and got a CIS Degree
+
+df_emp_3 <- Ques2 %>% subset(Stayed.3.Years == "Yes" & CIS.Degree == "Yes" )
+prop.test(nrow(df_emp_3), nrow(Ques2), conf.level = 0.95, correct = FALSE)
+l95_rounded_sal<- 0.2714
+r95_rounded_sal <- 0.4994
+
+
+### Display 95% CI
+sprintf("95 percent Confidence Interval: (%s, %s)", l95_rounded_sal, r95_rounded_sal)  
+
+#### Interpretation
+sprintf("INTERPRETATION: We are 95 percent confident that the interval between %.1f %% and %.1f %% contains contains the true population proportion for proportion of employees who stayed 3 years and have a CIS Degree.", l95_rounded_sal*100, r95_rounded_sal*100)
+#### We are 95% confident that the interval between 27.14% and 49.94% contains the true population proportion for proportion of employees who stayed 3 years and have a CIS Degree.
+
+##Information on all employees who stay with BAY for three years and did not get a CIS Degree
+
+df_emp_3 <- Ques2 %>% subset(Stayed.3.Years == "Yes" & CIS.Degree == "No" )
+prop.test(nrow(df_emp_3), nrow(Ques2), conf.level = 0.95, correct = FALSE)
+
+l95_rounded_sal <- 0.05233 
+r95_rounded_sal <- 0.2031
+
+### Display 95% CI
+sprintf("95 percent Confidence Interval: (%s, %s)", l95_rounded_sal, r95_rounded_sal)  
+
+#### Interpretation
+sprintf("INTERPRETATION: We are 95 percent confident that the interval between %.1f %% and %.1f %% contains the true population proportion for proportion of employees who stayed 3 years and does not have a CIS Degree..", l95_rounded_sal*100, r95_rounded_sal*100)
+#### We are 95% confident that the interval between 23.6% and 36.4% contains contains the true population proportion for proportion of employees who stayed 3 years and does not have a CIS Degree.
+
+##Student University's students particularly those with a CIS Degree, have traditionally been among the best of the BAY recruits. 
+##From the above table it can be inferred that people who are from State University with CIS degree usually leave the company earlier than others. 
+##These people can be assumed to get better jobs than at BAY, elsewhere. 
+##These people are considered elite the probability that the elite people stay in the company for more than 3 years is less than the probability that elite people leave the company, this statistics also proves elite people are hard to retain.
+##11 out of the total pool stayed with a CIS degree from State University.
+##13 out of the total pool left with a CIS degree from State University
+##Hence proving my assumption.
+
+
+####Question 4####
+##Choose an appropriate statistical test to answer this question. 
+##Please clearly state the objective, type of data, experimental design used, definition of each population, the statistical technique used, and the hypotheses corresponding to the statistical technique chosen. 
+##Since a statistical technique needs to be chosen in this question, you should run the check for the required conditions.
+
+##Objective: Assess if there is variance between the business trips for both men and women.
+##Type of Data: Interval Data Type which is independent.
+##Experimental Design: Randomized Block Design
+##Two Populations: Businessmen and Businesswomen who differ in the number of business trips made.
+##Statistical Technique: Two Sample F Test for Independent Samples
+##H0: sig_1^2/sig_2^2 >=1
+##H1: sig_1^2/sig_2^2 <1
+
+##Read the csv file
+Ques4 <- read.csv("Business Travel.csv")
+
+##Required Conditions:
+#1.The Samples are random : TRUE
+#2.Independant Samples: TRUE
+#3.Normal distribution for each sample:TRUE Nearly(Assuming)
+
+##Normal Distribution for population 1: Males
+hist(Ques4$Males, na.rm = TRUE)
+##Uniformly Distributed
+
+##Normal Distribution for population 2: Females
+hist(Ques4$Females, na.rm = TRUE)
+##Uniformly Distributed
+
+##Assessing the variance of the two tellers
+var.test(Ques4$Males, Ques4$Females, ratio = 1, alternative = "greater")
+
+##As seen in the results the p value is statistically significant implying there is a difference in variance between males and females.
+
+####Question 5####
+##Analyze the data and conduct whichever tests you deem necessary at the 5% significance level
+##to determine whether there is sufficient statistical evidence to infer 
+##that there are differences in the improvement in the headache index between the two schedules, 
+##differences in the improvement in the headache index between the four drug mixtures, or interaction between schedules and drug mixtures. 
+##Create the interaction plot and explain the nature of interaction or lack thereof. 
+##No need to assess if the required conditions are satisfied. Assume the required conditions are met.
+
+##Objective: Assess the interaction between schedules and drug mixtures which one proves to be beneficiary for headaches.
+##Experimental Design: Randomized Block Design
+##Type of Data: Independent samples Two Factor ANOVA Test
+##H_0: mu_1=mu_2=mu_3=mu_4
+##H_1: At least two means differ
+##There are Two Factors: Drug and Schedule
+##There are 4 levels for Factor Drug and 2 levels for Factor Schedule
+##There are a total of 8 treatments, Response variable: Headache Improvements on 0-100 scale
+
+##Reading the csv file and stacking the data
+library(tidyr)
+Ques5 <- read.csv("Headache Remedy.csv")
+Ques5_stack <-  reshape2::melt(Ques5, id.vars = "Schedule")
+names(Ques5_stack) <- c("Schedule", "Drug", "Improvement")
+
+##Defining the factors.
+Improvement <- Ques5_stack$Improvement
+Drug <- factor(Ques5_stack$Drug)
+Schedule <- factor(Ques5_stack$Schedule)
+
+##Creating a linear model.
+model_ques5 <- lm(Improvement ~ Drug + Schedule)
+redis_ques5 <- residuals(model_ques5)
+predis_ques5 <- predict(model_ques5)
+
+##Running a Normality Test.
+
+##Anderson Darling Test: Formal Normality Test.
+nortest::ad.test(redis_ques5)
+
+##Histogram Informal Normality Test
+hist(redis_ques5)
+##The data is almost normal hence the normal condition is satisfied and p-value is small.
+
+##Two Way ANOVA Test
+ANOVA_ques5 <- aov(Improvement ~ Drug + Schedule + Drug*Schedule)
+summary(ANOVA_ques5)
+##As can be seen from the ANOVA table p value is statistically significant and the blocking is meaningful.
+
+##Post Hoc Test
+### Interaction Plots - only one needed. But plotting both might be more insightful.
+interaction.plot(Drug, Schedule, Improvement)
+interaction.plot(Schedule, Drug, Improvement)
+
+##As seen from the interaction plot 1 there is a strong interaction between the drug  and it's schedule thus having a high improvement. All the drugs are not independent of the it's schedule. The mean score of the drugs is higher when the mean score of the schedule of the drug is high.
+##As seen from the interaction plot 2 there is a strong interaction between all the schedules of the drug for all the drugs. All the drugs are not independent of it's schedule. The mean score of the drug used is higher when the mean score of the schedule of the drug is high.
+##Since the alternative hypothesis is true as seen from the ANOVA test where the p-value is statistically significant. Thus having a strong interaction which is why a main effect test is not required.
+
+####Question 6####
+
+##Objective: Assess the amount of time taken to fill the different forms.
+##H0: No difference exists between the block effects on the mean time devoted to a patient.
+##H1: At least two block effects differ
+
+##Reading the csv file and stacking the data
+
+Ques6 <- read.csv("Patient Care.csv")
+
+##For stacking the data, use the following commands.
+library(tidyr)
+
+options(tibble.print_max = Inf)
+Ques6_Stack <- pivot_longer(Ques6, cols = -Age, names_to = "Care_Type", values_to = "Time_Devoted")
+
+Time_Devoted <- Ques6_Stack$Time_Devoted
+Care_Type <- factor(Ques6_Stack$Care_Type)
+Blocks <- factor(Ques6_Stack$Age)
+
+## Collect the residuals and the fitted values.
+model_ex2 <- lm(Time_Devoted ~ Care_Type + Blocks)
+resids_ex2 <- residuals(model_ex2)
+preds_ex2 <- predict(model_ex2)
+
+##Normality Test: Anderson-Darling
+nortest::ad.test(resids_ex2)
+
+##Normality Test: Histogram
+hist(resids_ex2)
+
+## Normality Test: Normal Quantile Plot
+qqnorm(resids_ex2)
+qqline(resids_ex2)
+
+##Constant Variance Test: Residuals versus Fits
+plot(fitted(model_ex2), residuals(model_ex2))
+
+##Equal variance test - Levene's test
+car::leveneTest(Time_Devoted ~ Care_Type)
+
+## Equal variance test - Bartlett's test
+bartlett.test(Time_Devoted ~ Care_Type)
+
+### Run Randomized-Block ANOVA
+ANOVA2 <- aov(Time_Devoted ~ Care_Type + Blocks)
+summary(ANOVA2)
+
+## Post-hoc on Care_Type
+TukeyHSD(ANOVA2, which = 'Care_Type', ordered = TRUE)
+plot(TukeyHSD(ANOVA2, which = 'Care_Type', ordered = TRUE), las = 1)
+
+
+##As can been seen from the Tukey plot the difference lies between Internal-Pediatrics, Obs.Gyn-Pediatrics, Obs.Gyn-General and Obs.Gyn-Surgery. This forms the following hypothesis
+##(The null hypothesis is rejected because of the very small p-value)
+##(The alternative hypothesis is true)
+##Thus zero is a possible value that lies within this difference implying there cannot be a difference between this treatment group.
+
+
+####Question 7####
+##Objective: Assessing which hypothesis holds true for cereal packaging.
+##H0: mu = 375
+##H1: mu < 375
+
+install.packages("PASWR2")
+library(PASWR2)
+library("pwr")
+
+tsum.test(mean.x = 375.0, s.x = 22.5, n.x = 30, alternative = "less", conf.level = 0.95)
+
+##Type II error and POW Test
+
+critical_value <- qnorm(0.05, mean = 365, sd = 22.5/sqrt(30), lower.tail = FALSE)
+# Probability of Type II Error
+round(pnorm(critical_value, mean = 365, sd = 22.5/sqrt(30), lower.tail = FALSE), 4)
+
+
+# d = Cohen's d
+pwr.t.test(n = 30, d = -10/25, sig.level = 0.05, power = NULL, 
+           type = "one.sample", 
+           alternative = "less")
+# Conclusion:
+# This calculation shows that if the true mean is mu = 375, 
+# then there is a 68.95 percent chance that we will commit Type II error 
+# by failing to reject mu = 365. Because 365 is not very far 
+# from 375 in terms of the standard error, our test has relatively 
+# low power. Although our test may not be sensitive enough to reject 
+# the null hypothesis reliably if mu is only slightly less than 375, 
+# we would expect that if mu is far below 375, our test would be more 
+# likely to lead to rejection of H0. Although we cannot know the 
+# true mean, we can repeat our power calculation for as many values 
+# of mu and n as we wish.
+
+
+## What should be the sample size to attain a 90% power?
+pwr.t.test(n = NULL, d = -10/30, sig.level = 0.05, power = 0.90, type = "one.sample", alternative = "less")
+
+
+####Question 8####
+
+##Motivation: To see if the first design than the second one is better for the management to use this design.
+
+## Number of samples: 2 (Two Soap Designs)
+
+## Type of Samples: Independent
+
+## Type of Data: Ordinal
+
+## Statistical technique to run: Wilcoxon Rank Sum Test
+##Experimental Design: Non Parametric Analysis
+
+## Population 1: Supermarket 1
+## Population 2: Supermarket 2
+
+## H0: The two population locations are the same.
+## H1: The location of population 1 is to the left of the location of population 2.
+##Required Conditions:
+##1. Compare two populations : TRUE
+##2. Data is ordinal or interval : TRUE
+##3. Data is not normal : TRUE
+##4. Samples are independent : TRUE
+
+##To check for normality informally
+
+Ques8 <- read.csv("Product Packaging.csv")
+
+hist(Ques8$Supermarket.1)
+hist(Ques8$Supermarket.2)
+
+##The histograms show that they are not normally distributed
+
+##Wilcoxon Rank Test
+wilcox.test(Ques8$Supermarket.1, Ques8$Supermarket.2, 
+            alternative = "less", paired = FALSE, exact = FALSE, conf.level = 0.95)
+
+## Decision: Fail to Reject H0 at 0.05 significance level. 
+
+## Interpretation: There is no evidence to infer that the management should switch to the brightly colored design or the simple green one.
+##As the p values is statiscially significant alternative hypothesis is true.
+
+####Question 9####
+##Objective: TO determine if the the customers perceive difference in service times between the three shifts.
+##Type of Data: Ordinal Data with is Independent.
+##Experimental Design: 
+##H0: The locations of all the 3 populations are the same.
+##H1: Atleast two population locations differ
+##Type of Data: Ordinal-Interval Independent Data
+##Populations: Three populations with three different time shifts
+##Required Conditions:
+##1. Compare 2 or more populations: TRUE
+##2. Data is either ordinal or interval: TRUE
+##3. Samples are independent: TRUE
+##4. Data is not normal: TRUE
+
+##Read the csv file
+
+Ques9 <- read.csv("Quality Study.csv")
+
+##Check for normality
+hist(Ques9$X4.00pm.Midnight)
+hist(Ques9$Midnight.8.00.am)
+hist(Ques9$X8.00am.4.00.pm)
+
+##Run the test
+### Quality of Work Performed
+
+## Motivation: To see if the population of the service time at 4.00pm.Midnight. 
+## Midnight.8.00.am. and 8.00am.4.00.pm. differ in their assessment of speed of service time.  
+
+## Number of samples: 3 (One who make positive comments, Second who make negative comments, third who make no comments)
+
+## Type of Samples: Independent
+
+## Type of Data: Ordinal
+
+## Statistical technique to run: Kruskal-Wallis Test
+
+## Population 1: Those who have a shift from 4.00pm.Midnight.
+## Population 2: Those who have a shift from Midnight.8.00.am.
+## Population 3: Those who have a shift from 8.00am.4.00.pm.
+
+## H0: The location of all 3 populations is the same.
+## H1: At least two population locations differ.
+
+install.packages("PMCMR")
+library(PMCMR)
+
+## Decision: Reject H0
+
+## Interpretation: There is evidence to conclude that the service time at 4.00pm.Midnight. 
+## Midnight.8.00.am. and 8.00am.4.00.pm. differ in their assessment of speed of service time.  
+
+kruskal.test(Ques9$X4.00pm.Midnight ~ factor(Ques9$Midnight.8.00.am))
+
+## Decision: Fail to Reject H0
+
+## Interpretation: There is no evidence to conclude that that the service time at 4.00pm.Midnight. 
+## Midnight.8.00.am. and 8.00am.4.00.pm. differ in their assessment of speed of service time.  
+
+### Explanation of Work
+
+## Motivation: To see if the population of that the service time at 4.00pm.Midnight. 
+## Midnight.8.00.am. and 8.00am.4.00.pm. differ in their assessment of speed of service time.  
+
+## Number of samples: 3 (One who make positive comments, Second who make negative comments, third who make no comments)
+
+## Type of Samples: Independent
+
+## Type of Data: Ordinal
+
+## Statistical technique to run: Kruskal-Wallis Test
+
+## Population 1: Those who make positive comments
+## Population 2: Those who make negative comments
+## Population 3: Those who make no comments
+
+## H0: The location of all 3 populations is the same.
+## H1: At least two population locations differ.
+
+
+## Decision: Fail to Reject H0
+
+## Interpretation: There is no evidence to conclude that customers who make 
+## positive, negative, and no comment differ in their assessment of 
+## explanation of work and guarantee.
+
+### Checkout Process
+
+## Motivation: To see if the population of customers who make positive comments, 
+## negative comments, and no comments differ in their assessment of checkout process category.
+
+kruskal.test(Ques9$X8.00am.4.00.pm ~ factor(Ques9$Midnight.8.00.am))
+
+## Decision: Reject H0
+
+## Interpretation: There is sufficient evidence to conclude that the service time at 4.00pm.Midnight. 
+## Midnight.8.00.am. and 8.00am.4.00.pm. differ in their assessment of speed of service time.  
+
+##Post Hoc test
+posthoc.kruskal.dunn.test(Ques9$X4.00pm.Midnight, factor(Ques9$Midnight.8.00.am), p.adjust.method = "bonferroni")
+posthoc.kruskal.dunn.test(Ques9$X8.00am.4.00.pm, factor(Ques9$Midnight.8.00.am), p.adjust.method = "bonferroni")
+
+
+####Question 10####
+##Objective: TAssess that more educated (EDUC) people read newspapers more often(NEWS)
+##H0: rho <= 0
+##H1: rho >0
+##Type of Data:Ordinal Independent Data
+##Experimental Design: Non Parametric Design
+##Statistical Used: Spearman Rank Test
+##Two Populations: Educated People and Newspapers
+##Required COnditions:
+## 1. Two Populations: TRUE
+## 2. Data is either ordinal or interval : TRUE
+## 3. The data is not normal: TRUE
+
+##Read the csv file
+
+Ques10 <- read.csv("Newspaper Reading.csv")
+
+##Checking for normality
+
+hist(Ques10$EDUC)
+hist(Ques10$NEWS)
+
+cor.test(x = Ques10$EDUC, 
+         y = Ques10$NEWS, 
+         alternative = "greater", 
+         method = "spearman", exact = FALSE)
+
+## Decision: Reject H0
+
+## Interpretation: There is overwhelming evidence to conclude that more educated people read more newspapers per week.
+
+
+####Question 11####
+##Objective: To find how insurance companies stay in business
+#no. of policies
+n <- 1000
+#2.3% accidents of males between 18-25 years of age
+#Probability of accident 
+p <- 0.023
+#Probability of no accident
+q <- 0.977
+mean <- n*p
+sd <- sqrt(n*p*q)
+#Probability of the company losing money on a single policy: P(x<0)
+#Average payout for single policy = 2550*0.977 + 0.023*(-66000) = 973.35
+#The company makes this much money on a single policy
+pnorm(0, 23, sd, log.p = FALSE)
+
+#After 39 accidents the company will start loosing money
+#Money the insurance company will be making 2550000
+#Per accident Cost = 66000
+#Break Even Point
+bp <- 2550000/66000
+#Average payout for 1000 policies = (0.023*1000)*(-66000) + (0.977*1000)*2550 = 973350
+#The company makes this money on 1000 policies
+#Probability of the company losing money on 1000 policies: (P>39)
+pnorm(39, 23, sd, log.p = FALSE)
+
+#The insurance company stays in business by application of law of large numbers. 
+#The total expected loss per policy is replaced by the average loss a person might face.
+#Thus the losses are pooled together.
+#A large pool of premium is made which is then used to pay for claims that occur.
+
+####Question 12####
+##Objective: To infer that each day the exercisers abstain from physical activity they were less happy.
+##Type of Data: Ordinal Block Data
+##Experimental Design: Non Parametric Block Design
+##Four Populations: Before, Day1, Day2, Day3 with respective Exerciser Number.
+##Statistical Test: Freidman Test
+##H0: rho <= 0
+##H1: rho >0
+
+##Required Conditions:
+## 1. Two Populations: TRUE
+## 2. Data is either ordinal or interval : TRUE
+## 3. The data is not normal: TRUE
+
+
+
+##Read the csv file and Running the Friedman test
+data <- read.csv("Exercise Addiction.csv")
+data <- data[,2:5]
+mat <- data.matrix(data)
+
+##Testing for normality
+
+hist(data$Before)
+hist(data$Day.1)
+hist(data$Day.2)
+hist(data$Day.3)
+
+friedman.test(mat)
+
+# Decision: Reject H0
+
+# Interpretation: There is enough evidence to infer that there are 
+# differences in the exerciser's mood with each day of no exercise.. 
+
+# Post-hoc test optional.
+install.packages("PMCMRplus")
+library(PMCMRplus)
+posthoc.friedman.nemenyi.test(Ques12_matrix)
+##The data suggests that by third day moods of the exerciser were improving.
+
+
+####Question 13####
+##Objective: Calculate the number of spins while throwing the dice 2 twice
+##Calculate & displaying Theoretical Mean and Theoretical Standard Deviation 
+
+set.seed(100)
+options(na.action = "na.omit")
+num_spins = seq(2,12)
+
+##Calculate & displaying Theortical Mean and Thertical Standard Deviation 
+
+##Sampling
+samplesize <- 5
+repli <- 1000
+
+d <- c(1:6)
+k <- (1:10)
+dth <- function(x)
+{
+  spin <- 0
+  for(i in 1:x)
+  {
+    d_1 <- c(replicate(20, sample(d,1, replace = FALSE, prob = NULL)+sample(d,1, replace = FALSE, prob = NULL)))
+    w <- length(which(d==7))
+    spin[i] <- w
+  }
+  return(spin)
+}
+
+sample_winning <- replicate(1000, dth(1))
+sample_winning
+
+theor_mean <- 20*1/6
+theor_mean
+theor_sd <- 20*(1/6)*(1-1/6)
+theor_sd
+
+
+##Matrix to store the values and Transpose it
+spin_matrix <- matrix(repli, nrow = samplesize)
+
+spin_matrix <- t(spin_matrix)
+
+
+##Calculate means of each sample(1000)
+samp_mean <- rowMeans(spin_matrix)
+samp_mean
+
+##Calculating the average of all the sample means
+meanof_samplemean <- mean(samp_mean)
+meanof_samplemean
+
+##Standard Error
+sd_se <- sd(samp_mean, na.rm = TRUE)
+
+##Histogram plot of sample means
+hist(samp_mean, probability = FALSE)
+
+##Standard Error Theortical
+se_theor <- theor_sd/sqrt(samplesize)
+
+##Compare the theoretical mean with mean of sample means
+theor_mean
+meanof_samplemean
+###Observation:
+##Theoretical mean is almost equal to the sample mean.
+##Mean of sample means calculated when theortical mean is unknown which is also almost equal to sample mean for the population
+
+
+##Compare the theoretical standard error with the standard deviation of samples
+se_theor
+sd_se
+
+##The probability distribution is uniform and repeated sampling results in a nearly normal distribution.
+
+
+pnorm(600, mean = theor_mean, sd = se_theor, lower.tail = FALSE)
+
+##Create a table of summmary
+rows_df <- c('Theoretical Mean','Mean of Sample Means','Theoretical Standard Error','Standard Deviation of Sample Means')
+col_df <- c(theor_mean, meanof_samplemean,se_theor,sd_se,sample_winning)
+spin_df <- data.frame(rows_df, col_df)
+
+
+col_df <- c('Theoretical Mean','Mean of Sample Means','Theoretical Standard Error','Standard Deviation of Sample Means')
+
+final_df <- data.frame(col_df)
+colnames(final_df) <- c("Spins")
+
+for (i in num_spins) {
+  
+  df <- spin_df(i)
+  final_df <- merge(final_df, df, by = 'Spins')
+  
+}
+
+final_df
+
+##The sample mean does not change much of the probability and follows a near normal distribution.
+##The previous version of this question had a vector from 1 to 1000 where spins were created through the specific vector.
+##Here spin is not a vector. It's based on the throw of 2 dices twice that is thrown 20 times in which throw 7 is the result is counted as one spin.
+##The simulation is different in both the questions.
+
+
+####Question 14####
+##Objective: Infer the sales of the watch so that the company does not incur a loss with respect to sending number of defective watches.
+##Each line produces 500 watches. Probability of being defect free s 0.98. For line 1(Supreme) and for line 2(Premium) is 0.99.
+##Using Binomial Distribution: Assume k to be 20. To be 99% sure that the line will not produce ore than k defective watches i a given hour.
+##For the Super Line
+p <- 0.98
+n <- 500
+mean <- n*p
+### For 99% confidence...z95 <- qnorm(0.975, mean = 0, sd = 1, lower.tail = TRUE)
+z99 <- qnorm(0.99, mean = 0, sd = 1, lower.tail = TRUE)
+
+sd <- sqrt(n*p*q)
+l99 <- mean - (z99*sd/sqrt(n))
+l99_rounded <- round(l99, digits = 3)
+
+##For the Premium line
+p <- 0.99
+n <- 500
+mean <- n*p
+### For 99% confidence...z95 <- qnorm(0.975, mean = 0, sd = 1, lower.tail = TRUE)
+z99 <- qnorm(0.99, mean = 0, sd = 1, lower.tail = TRUE)
+
+sd <- sqrt(n*p*q)
+l99 <- mean - (z99*sd/sqrt(n))
+l99_roundedp <- round(l99, digits = 3)
+
+##Number of watches that can be packed for a Premium line
+k <- 500
+s <- k/l99_roundedp
+##512 Watches
+
+##The customer pays $50000 for the order, if Accudial Celestial sends more than 100 watches it's revenue won't increase.
+##Unit cost of producing a watch is $450 the probability for Premium Line is 0.99
+
+##Creating a data frame for the profit and table of probabilities.
+df_profit <- data.frame(matrix( nrow = 111, ncol = 10))
+
+df_table<- data.frame(matrix(nrow = 111, ncol = 10))
+names(df_table) <- c("Number of watches", "Number of Defect Free Watches")
+
+for(i in 101:110)
+{
+  for(j in 0:i)
+  {
+    
+    prob_prem <- dbinom(j,i,0.99)
+    df_table[j+1, i-100] <- prob_prem
+    if(j <= 100)
+    {
+      df_profit[j+1,i-100] <- min(50000,(j*500) - (i*450 + (100 - j)*1000))
+    }else
+    {
+      df_profit[j+1, j-100] <- min(50000,(j*500)) - (j*450)
+    }
+  }
+  
+}
+
+for( k in 0:10)
+{
+  expect[i] <- sum(df_profit$X[k], na.rm = TRUE)
+}
+##The expected profit for company for the Premium line is $3900(approx)
+
+##Repeating the same process for Super Line
+##The customer pays $50000 for the order, if Accudial Celestial sends more than 100 watches it's revenue won't increase.
+##Unit cost of producing a watch is $450 the probability for Super Line is 0.98
+
+df_profit <- data.frame(matrix( nrow = 111, ncol = 10))
+
+df_table<- data.frame(matrix(nrow = 111, ncol = 10))
+names(df_table) <- c("Number of watches", "Number of Defect Free Watches")
+
+for(i in 101:110)
+{
+  for(j in 0:i)
+  {
+    
+    prob_prem <- dbinom(j,i,0.98)
+    df_table[j+1, i-100] <- prob_prem
+    if(j <= 100)
+    {
+      df_profit[j+1,i-100] <- min(50000,(j*500) - (i*450 + (100 - j)*1000))
+    }else
+    {
+      df_profit[j+1, j-100] <- min(50000,(j*500)) - (j*450)
+    }
+  }
+  
+}
+
+for( k in 0:10)
+  
+{
+  expect[i] <- sum(df_profit$X[k], na.rm = TRUE)
+}
+##The expected profit for company for the Premium line is $3200(approx)
+
+

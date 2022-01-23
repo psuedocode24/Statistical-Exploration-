@@ -1,0 +1,558 @@
+#######Homework 4########
+install.packages("tidyr")
+install.packages("PMCMR")
+install.packages("PASWR2")
+install.packages("dyplr")
+install.packages("readxl")
+
+####Question 1####
+##Objective: Assess the amount of time taken to fill the different forms
+##H_0: mu_1=mu_2=mu_3=mu_4
+##H_1: Atleast two means differ
+
+##Reading the csv file and stacking the data
+Ques1 <- read.csv("1 - IRS 1.csv")
+Ques1_stack <- stack(Ques1)
+
+##Naming the table
+names(Ques1_stack) <- c("Time", "Form")
+Time <- Ques1_stack$Time
+Form <- Ques1_stack$Form
+
+##Creating a linear model
+model_ques1 <- lm(Time ~ Form)
+redis_ques1 <- residuals(model_ques1)
+predis_ques1 <- predict(model_ques1)
+
+##Running a Normality Test
+
+##Anderson Darling Test: Formal Normality Test
+nortest::ad.test(redis_ques2)
+
+##Histogram Informal Normality Test
+hist(redis_ques2)
+##The data is almost normal hence the normal condition is satisfied and p-value is very small.
+
+##Running a equal variance check
+
+##Levene's Test(mostly if not normal)
+car::leveneTest(Time ~ Form)
+car::leveneTest(Time ~ Taxpayer)
+
+##Bartlett's Test(mostly if normal)
+bartlett.test(Time ~ Form)
+
+##The data follows the equal variance test as can be seen from the significant p-value.
+
+##One Way ANOVA Test
+ANOVA_ques1 <- aov(Time ~ Form)
+summary(ANOVA_ques1)
+
+##Post Hoc Test
+TukeyHSD(ANOVA_ques1)
+plot(TukeyHSD(ANOVA_ques1), las=1)
+
+##As can been seen from the Tukey plot the difference lies between the form 4 and form 1. This forms the following hypothesis
+##H_0: mu_f4 = mu_f1 (The null hypothesis is rejected because of the very small p-value)
+##H_1: mu_f4 != mu_f1(The alternative hypothesis is true)
+##Thus zero is a possible value that lies within this difference implying there cannot be a difference between this treatment group.
+
+####Question 2####
+##Observation: Asses the time take taken by a block of people 
+library(tidyr)
+##Reading the csv file and stacking the data
+Ques2 <- read.csv("2 - IRS 2.csv")
+Ques2_stack <- reshape2::melt(Ques2, id.vars = "Taxpayer")
+names(Ques2_stack) <- c("Taxpayer", "Form", "Time")
+
+##Defining the factors
+Time <- Ques2_stack$Time
+Taxpayer <- factor(Ques2_stack$Taxpayer)
+Form <- factor(Ques2_stack$Form)
+
+##Creating a linear model
+model_ques2 <- lm(Time ~ Form + Taxpayer)
+redis_ques2 <- residuals(model_ques2)
+predis_ques2 <- predict(model_ques2)
+
+##Running a Normality Test
+
+##Anderson Darling Test: Formal Normality Test
+nortest::ad.test(redis_ques2)
+
+##Histogram Informal Normality Test
+hist(redis_ques2)
+##The data is almost normal hence the normal condition is satisfied and p-value is very small.
+
+##Running a equal variance check
+
+##Levene's Test(mostly if not normal)
+car::leveneTest(Time ~ Form)## for treatments
+
+##Bartlett's Test(mostly if normal)
+bartlett.test(Time ~ Form)
+
+##Constant Variance Test
+plot(fitted(model_ques2), residuals(model_ques2))
+
+##The data follows the constant variance test as can be seen from the significant p-value.
+
+##Two Way ANOVA Test
+ANOVA_ques2 <- aov(Time ~ Form + Taxpayer)
+summary(ANOVA_ques2)
+##As can be seen from the ANOVA table p value is statistically significant and the blocking is meaningful.
+
+##Post Hoc Test
+TukeyHSD(ANOVA_ques2, which = 'Form', ordered = TRUE )
+plot(TukeyHSD(ANOVA_ques2, which = 'Form', ordered = TRUE), las=1)
+
+##The difference between the two anova table in both the questions is that the unexplained error is assigned to the blocks in the second question unlike for the first one where the error is not assigned to blocks but people who are filling the forms which .
+##As can been seen from the Tukey plot that only one interval crosses the 0 mark meaning so the difference lies between the form 2 and form 1. Thus zero is a possible value that lies within this difference implying there cannot be a difference between this treatment group.
+
+####Question 3####
+##Objective: Assess the amount of time taken to fill the different forms in different taxpayer incomes.
+##H_0: mu_1=mu_2=mu_3=mu_4
+##H_1: Atleast two means differ
+
+##There are two factors: Forms and Taxpayer Income
+##There are 4 levels for Factor Form and 3 levels for Factor Taxpayer Income
+##There are a total of 12 treatments
+##Reading the csv file and stacking the data
+library(tidyr)
+Ques3 <- read.csv("3 - IRS 3.csv")
+Ques3_stack <-  reshape2::melt(Ques3, id.vars = "Group")
+names(Ques3_stack) <- c("Group", "Form", "Time")
+
+##Defining the factors
+Time <- Ques3_stack$Time
+Group <- factor(Ques3_stack$Group)
+Form <- factor(Ques3_stack$Form)
+
+##Creating a linear model
+model_ques3 <- lm(Time ~ Form + Group)
+redis_ques3 <- residuals(model_ques3)
+predis_ques3 <- predict(model_ques3)
+
+##Running a Normality Test
+
+##Anderson Darling Test: Formal Normality Test
+nortest::ad.test(redis_ques3)
+
+##Histogram Informal Normality Test
+hist(redis_ques3)
+##The data is almost normal hence the normal condition is satisfied and p-value is small.
+
+##Running a equal variance check
+
+##Levene's Test(mostly if not normal)
+car::leveneTest(Time ~ Form)## for treatments
+
+
+##Bartlett's Test(mostly if normal)
+bartlett.test(Time ~ Form)
+
+##The data follows the constant variance test as can be seen from the significant p-value.
+
+##Two Way ANOVA Test
+ANOVA_ques2 <- aov(Time ~ Form + Group + Form*Group)
+summary(ANOVA_ques2)
+##As can be seen from the ANOVA table p value is statistically significant and the blocking is meaningful.
+
+##Post Hoc Test
+### Interaction Plots - only one needed. But plotting both might be more insightful.
+interaction.plot(Form, Group, Time)
+interaction.plot(Group, Form, Time)
+
+##The difference between the two anova table in both the questions is that the unexplained error is assigned to the blocks in the second question unlike for the first one where the error is not assigned to blocks but people who are filling the forms which .
+##As seen from the interaction plot 1 there is a strong interaction between all the groups and forms except group 1. All the other groups are not independent of the form type. The mean score of the groups is higher when the mean score of the forms type are high.
+##As seen from the interaction plot 2 there is a strong interaction between all form types and the groups except form type 4. All the other form types are not independant of the group. The mean score of the form type is higher when the mean score of the groups are high.
+##Since the alternative hypothesis is true as seen from the ANOVA test where the p-value is statistically significant. Thus there is a difference between the four forms as well between the difference in time between different income bracket of the taxpayers.
+
+
+####Question 4####
+##Objective: Assess the whiteness scores for the clothes washed at different temperatures. 
+##H_0: mu_1=mu_2=mu_3=mu_4
+##H_1: Atleast two means differ
+
+##There are Two Factors: Detergent and Temperature
+##There are 5 levels for Factor Detergent and 3 levels for Factor Temperature
+##There are a total of 15 treatments
+
+##Reading the csv file and stacking the data
+library(tidyr)
+Ques4 <- read.csv("4 - Detergents.csv")
+Ques4_stack <-  reshape2::melt(Ques4, id.vars = "Temperature")
+names(Ques4_stack) <- c("Temperature", "Detergent", "Whiteness")
+
+
+##Defining the factors
+Whiteness <- Ques4_stack$Whiteness
+Detergent <- factor(Ques4_stack$Detergent)
+Temperature <- factor(Ques4_stack$Temperature)
+
+##Creating a linear model
+model_ques4 <- lm(Whiteness ~ Detergent + Temperature)
+redis_ques4 <- residuals(model_ques4)
+predis_ques4 <- predict(model_ques4)
+
+##Running a Normality Test
+
+##Anderson Darling Test: Formal Normality Test
+nortest::ad.test(redis_ques4)
+
+##Histogram Informal Normality Test
+hist(redis_ques4)
+##The data is almost normal hence the normal condition is satisfied and p-value is small.
+
+##Running a equal variance check
+
+##Levene's Test(mostly if not normal)
+car::leveneTest(Time ~ Form)## for treatments
+
+##Bartlett's Test(mostly if normal)
+bartlett.test(Time ~ Form)
+
+##The data follows the constant variance test as can be seen from the significant p-value.
+
+##Two Way ANOVA Test
+ANOVA_ques4 <- aov(Whiteness ~ Detergent + Temperature + Detergent*Temperature)
+summary(ANOVA_ques4)
+##As can be seen from the ANOVA table p value is statistically significant and the blocking is meaningful.
+
+##Post Hoc Test
+### Interaction Plots - only one needed. But plotting both might be more insightful.
+interaction.plot(Detergent, Temperature, Whiteness)
+interaction.plot(Temperature, Detergent, Whiteness)
+
+##As seen from the interaction plot 1 there is a strong interaction between all the temperatures and detergents except the hot temperature. All the other detergents are not independent of the temperature type. The mean score of the detergents is higher when the mean score of the temperature type is high.
+##As seen from the interaction plot 2 there is a strong interaction between all detergents at all the temperatures. All the detergents are not independent of the temperature type. The mean score of the detergent is higher when the mean score of the temperature type are high.
+##Since the alternative hypothesis is true as seen from the ANOVA test where the p-value is statistically significant. Thus having a strong interaction which is why a main effect test is not required.
+
+
+####Question 5####
+##Objective:Assess the feedback of the customers in terms of rating and comments to decide whether they will return.
+##H0: The ratings are all the same for all the categories and may not return
+##H1: The rating of any one of the category is higher implying they will return to the store.
+
+##Reading the csv file
+Ques5 <- read.csv("5 - Automobile Service Center Ratings.csv")
+Ques5_stack <- reshape2::melt(Ques5, id.vars = "Return")
+names(Ques5_stack) <- c("Return", "Factors", "Rating")
+rating <- Ques5_stack[Ques5_stack$Factors == "Quality",] $Rating 
+return <- factor(Ques5_stack[Ques5_stack$Factors == "Quality",] $Return) 
+
+
+##Run the test
+wilcox.test(rating ~  return, alt = "less", paired = FALSE, exact = FALSE, conf.level = 0.95)
+
+##As seen from the test that higher the rating of the various category by a respective customer the higher the chance of the same customer returning.
+##Thus the alternative hypothesis is true as the p-value is not statistically significant.
+
+##Objective: Assessments of all the comments of the customers
+##H0: Assessment of all the comment types is the same. i.e. comments: fairness, comments, guarantee, quality
+##H1: Assessment of atleast two comments differ.
+
+##Reading the csv file
+rating_fairness <- Ques5_stack[Ques5_stack$Factors == "Fairness",] $Rating
+return_fairness <- factor(Ques5_stack[Ques5_stack$Factors == "Fairness",] $Return)
+
+
+##Running the test
+
+wilcox.test(rating_fairness ~ return_fairness, alt = "less", paired = FALSE, exact = FALSE)
+##Thus the alternative hypothesis is true as the p-value is not statistically significant(less than alpha).
+
+##Reading the variables
+rating_guarantee <- Ques5_stack[Ques5_stack$Factors == "Guarantee",] $Rating
+return_guarantee <- factor(Ques5_stack[Ques5_stack$Factors == "Guarantee",] $Return)
+
+##Running the test
+
+wilcox.test(rating_guarantee ~ return_guarantee, alt = "less", paired = FALSE, exact = FALSE)
+##Thus the alternative hypothesis is true as the p-value is not statistically significant(less than alpha).
+
+##Reading the variables
+
+rating_checkout <- Ques5_stack[Ques5_stack$Factors == "Checkout",] $Rating
+return_checkout <- factor(Ques5_stack[Ques5_stack$Factors == "Checkout",] $Return)
+
+##Running the test
+
+wilcox.test(rating_checkout ~ return_checkout, alt = "less", paired = FALSE, exact = FALSE)
+##Thus the alternative hypothesis is true as the p-value is not statistically significant(less than alpha).
+
+##Objective: Infer if the customers who make make different comments differ in their assessment of each category
+##H0: No difference in customer comment scores between the groups
+##H1: There is a difference in comment scores at least 2 groups
+
+Ques5_stack_comment <- reshape2::melt(Ques5, id.vars = "Comment")
+names(Ques5_stack_comment) <- c("Comment", "Factors", "Rating")
+
+rating_quality <- Ques5_stack_comment[Ques5_stack_comment$Factors == "Quality",] $Rating
+return_quality <- factor(Ques5_stack_comment[Ques5_stack_comment$Factors == "Quality",] $Comment)
+##Running the test
+kruskal.test(rating_quality~ return_quality)
+##Thus the alternative hypothesis is true as the p-value is not statistically significant(less than alpha).
+
+rating_fairness_c <- Ques5_stack_comment[Ques5_stack_comment$Factors == "Fairness",] $Rating
+return_fairness_c <- factor(Ques5_stack_comment[Ques5_stack_comment$Factors == "Fairness",] $Comment)
+##Running the test
+kruskal.test(rating_fairness_c ~ return_fairness_c)
+##Thus the alternative hypothesis is true as the p-value is not statistically significant(less than alpha).
+
+rating_guarantee_c <- Ques5_stack_comment[Ques5_stack_comment$Factors == "Guarantee",]$Rating
+return_guarantee_c <- factor(Ques5_stack_comment[Ques5_stack_comment$Factors == "Guarantee",]$Comment)
+##Running the test
+kruskal.test(rating_guarantee_c ~ return_guarantee_c)
+##Thus the alternative hypothesis is true as the p-value is not statistically significant(less than alpha).
+
+rating_checkout_c <- Ques5_stack_comment[Ques5_stack_comment$Factors == "Checkout",]$Rating
+
+return_checkout_c <- factor(Ques5_stack_comment[Ques5_stack_comment$Factors == "Checkout",]$Comment)
+##Running the test
+kruskal.test(rating_checkout_c ~ return_checkout_c)
+##Thus the alternative hypothesis is true as the p-value is not statistically significant(less than alpha
+
+####Question 6####
+##Objective: Assess if the differences exist between evaluations of the products
+##H0: The locations of all populations are the same
+##H1: Atleast two populations differ
+
+##Reading the csv file
+Ques6 <- read.csv("6 - Soft Drink Recipe.csv")
+
+##Create a matrix
+Ques6Matrix <- data.matrix(Ques6)
+
+##Friedman Test
+friedman.test(Ques6Matrix)
+
+##Post Hoc
+library(PMCMR)
+posthoc.friedman.nemenyi.test(Ques3Matrix)
+
+##As seen from the test the p-value is less than any reasonable significance level. So the null hypothesis is rejected.
+##This implies there is a difference between the ratings in the three recipes.
+
+####Question 7####
+##Objective: Analyse the relationship between two variables(Job Loss and Working long hours)
+##H0: rho <=0
+##H1: rho >0
+
+##Reading the csv file
+Ques7 <- read.csv("7 - Job Loss.csv")
+
+##Conducting a spearman test
+
+cor.test(x = Ques7$HRS1, y = Ques7$JOBLOSE, method = "spearman")
+
+##As Seen from the result the Alternative Hypothesis is true.
+##There is a positive correction which means the higher the number of working hours the higher will be the job rating and less likely to lose a job.
+
+
+####Question 8####
+##Objective: Compare two populations of ordinal data(European and Domestic Ice Cream)
+##H0: The number of people who like both European and Domestic brand ice-cream are same.
+##H1: The number of people who like the European brand ice cream are greater than or exactly half as the ones who like Domestic brand ice cream
+
+##Reading the csv file
+Ques8 <- read.csv("8 - Ice Cream Comparison.csv")
+
+##Running the Sign Test
+library(PASWR2)
+SIGN.test(x = Ques8$European, y = Ques8$Domestic, alternative = "greater", conf.level = 0.90)
+
+##As seen from the results the alternative hypothesis is true implying the European brand icecream is preferred.
+
+
+####Question 9####
+##Objective: Comapre the two key making machines 
+##H0: The two Machine populations take the same time to make a key
+##H1: The time taken by Machine 1 is different from Machine 2
+
+##Reading the csv file
+Ques9 <- read.csv("9 - Machine Selection.csv")
+
+##Compute the differences
+library(dplyr)
+differences <- Ques9 %>% mutate(diff = Machine.1 - Machine.2) %>% pull(diff)
+
+##Assess Normality
+hist(differences)
+##Not a normal distribution
+
+##Stack the data
+library(tidyr)
+Ques9_stack <- stack(Ques9[,c("Machine.1","Machine.2")])
+names(Ques9_stack) <- c("Time", "Machine")
+
+##Create Vectors
+Time <- Ques9_stack$Time
+Machine <- Ques9_stack$Machine
+
+##Wilcoxon Signed Rank Sum Test
+wilcox.test(Time~Machine , alt = "two.sided", paired = TRUE, exact = FALSE, conf.level = 0.95)
+
+##As seen from the result since there is difference between the time taken by the two Machines the locksmith should just choose the cheaper Machine.
+
+
+####Question 10####
+##Objective: To check if there is significance mean difference between the selling and appraised prices.
+##H0: mu_D <= D_0
+##H1: mu_D > D_0
+
+##Read the csv file
+Ques10 <- read.csv("10 - House Price Comparison.csv")
+
+##Compute the differences
+library(dplyr)
+difference <- Ques10 %>% mutate(diff = Value - Price) %>% pull(diff)
+
+##Assess Normality
+hist(difference)
+##Not a normal distribution
+
+##Running a paired sample t-test
+t.test(Ques10$Value, Ques10$Price, alternative = "greater", mu = 0, paired = TRUE)
+
+##As can be seen from both the tests that there is a statistically mean difference between the appraised price and value price. The 5% levels of significance there is no difference between these values.
+##The alternative hypothesis is true.
+
+
+####Question 11####
+##Objective: Assess if there is variance between the service times of the two tellers
+##H0: sig_1^2/sig_2^2 >=1
+##H1: sig_1^2/sig_2^2 <1
+
+##Read the csv file
+Ques11 <- read.csv("11 - Service Times.csv")
+
+##Assessing the variance of the two tellers
+var.test(Ques11$Teller1, Ques11$Teller2, ratio = 1, alternative = "greater")
+
+##As seen in the results the p value is statistically significant implying there is a difference in variance between the two tellers.
+
+####Question 12####
+##Objective: Assess which benefit has higher retention of employees
+##H0: p_1 - p_2 >= 0
+
+##The potential confounding effect could be that the employees on the West Coast might already have a pre- health condition implying that a health benifit would indeed increase the retention of such employees.
+##Another potential counfounding effect could be for the employees on the East Coast who might have to work spending all thier days of week at work thus demading for a vacation.
+
+##Read csv file
+Ques12 <- read.csv("12 - Benefits Comparison.csv")
+
+##Using the test statistic principles for prop.test to calculate the z value
+
+health <- filter(Ques12, Benefit == "Health")
+vacation <- filter(Ques12,Benefit == "Vacation")
+n_1 <- nrow(health)
+n_2 <- nrow(vacation)
+
+p1_hat <- nrow(filter(health, Retention == 1))/n_1
+p2_hat <- nrow(filter(vacation, Retention == 1))/n_2
+
+
+n1 <- 125
+n2 <- 140
+D <- 0.05
+z_num <- (p1_hat - p2_hat) - D
+z_den1 <- (p1_hat*(1-p1_hat))/n1
+z_den2 <- (p2_hat*(1-p2_hat))/n2
+z_den <- sqrt(z_den1 + z_den2)
+
+z <- (z_num/z_den) - D
+z# display the z value
+##The data indicate that offering health benefits has statistically significantly higher retention to compensate for switching to health benefits as z = 0.532 thus p1-p2>0.05.
+
+
+##Prop test
+x <- c(107, 109)
+y <- c(125, 140)
+prop.test(x, y, alternative = "greater", conf.level = 0.95, correct = FALSE)
+##As seen from the test there is not much difference statistically between the benifit plans.
+
+
+####Question 13####
+##Objective: To assess for income rise between different years with or without inflation
+##H0: mu_D <= D_0
+##H1: mu_D > D_0
+
+##Read the csv file
+library(readxl)
+Ques13_1 <- read.csv("13 - Comparing Incomes.csv")
+Ques13_2 <- read_xlsx("13 - U.S. CPI Annual.xlsx")
+names(Ques13_2) <- c("Year", "Inflation")
+
+##Compute the differences
+library(dplyr)
+difference1 <- Ques13_1 %>% mutate(diff = RINCOME_2000  - RINCOME_2008) %>% pull(diff)
+difference2 <- Ques13_1 %>% mutate(diff1 = RINCOME_2008  - RINCOME_2014) %>% pull(diff1)
+
+##Assess Normality
+hist(difference1)
+
+hist(difference2)
+##Nearly a normal distribution
+income_till_2008 <- Ques13_1[!is.na(Ques13_1$RINCOME_2000) & !is.na(Ques13_1$RINCOME_2008),]
+income_till_2014 <- Ques13_1[!is.na(Ques13_1$RINCOME_2014) & !is.na(Ques13_1$RINCOME_2008),]
+
+##Running a paired sample t-test
+t.test(income_till_2008$RINCOME_2000, income_till_2008$RINCOME_2008, alternative = "less", mu = 0, paired = FALSE)
+
+t.test(income_till_2014$RINCOME_2008, income_till_2014$RINCOME_2014, alternative = "less", mu = 0, paired = FALSE)
+
+##As can be seen from the test that the incomes rose from 2000 to 2008 as the p-value is statistically significant thus alternative hypothesis is true.
+##As can be seen from the test that the incomes rose from 2008 to 2014 as the p-value is statistically significant thus alternative hypothesis is true.
+
+##Running a 2 sample t-test
+
+Ques13_2$Inflation_P <- lag(Ques13_2$Inflation)
+Ques13_2$Inflation_Rate <- (Ques13_2$Inflation - Ques13_2$Inflation_P)/Ques13_2$Inflation_P
+
+Inflation_2000 <- Ques13_2[Ques13_2$Year == 2000,] $Rate
+Inflation_2008 <- Ques13_2[Ques13_2$Year == 2008,] $Rate
+Inflation_2014 <- Ques13_2[Ques13_2$Year == 2014,] $Rate
+
+income_2000 <- income_till_2008$RINCOME_2000/(1 + Inflation_2000)
+income_2008 <- income_till_2008$RINCOME_2008/(1 + Inflation_2008)
+income_20081 <- income_till_2014$RINCOME_2008/(1 + Inflation_2008)
+income_2014 <- income_till_2014$RINCOME_2014/(1 + Inflation_2014)
+
+
+t.test(income_2000, income_2008, alternative = "less", mu = 0, paired = FALSE, var.equal = FALSE)
+t.test(income_20081, income_2014, alternative = "less", mu = 0, paired = FALSE, var.equal = FALSE)
+
+##As can been seen from the test there has been an increase in the income from 2000 to 2008 and 2008 to 2014 along with adjusting with the inflation from the years 2000 to 2008 and also 2008 to 2014.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

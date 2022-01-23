@@ -1,0 +1,383 @@
+###############
+## Exercise 1
+##############
+Ex1 <- read.csv("Exercise 1 - Cereal Sales.csv")
+
+Ex1_Stacked <- stack(Ex1)
+
+names(Ex1_Stacked) <- c("Sales", "Shelf")
+
+Sales <- Ex1_Stacked$Sales
+Shelf <- Ex1_Stacked$Shelf
+
+model_ex1 <- lm(Sales ~ Shelf)
+resids_ex1 <- residuals(model_ex1)
+preds_ex1 <- predict(model_ex1)
+
+## Formal Test: Anderson-Darling
+nortest::ad.test(resids_ex1)
+
+## Informal Test: Histogram
+hist(resids_ex1)
+
+## Informal Test: Normal Quantile Plot
+qqnorm(resids_ex1)
+qqline(resids_ex1)
+
+## Equal variance test - Levene's test
+car::leveneTest(Sales ~ Shelf)
+
+## Equal variance test - Bartlett's test
+bartlett.test(Sales~Shelf)
+
+## Residuals versus Fits plot
+plot(fitted(model_ex1), residuals(model_ex1))
+
+## Run ANOVA
+ANOVA_Ex1 <- aov(Sales ~ Shelf)
+summary(ANOVA_Ex1)
+
+## Post-hoc test
+TukeyHSD(ANOVA_Ex1)
+plot(TukeyHSD(ANOVA_Ex1), las = 1)
+
+###############
+## Exercise 2
+###############
+Ex2 <- read.csv("Exercise 2 - Soap Sales.csv")
+
+PackageType <- factor(Ex2$PackageType) ## Converting int to a factor
+Sales <- Ex2$Sales
+
+### Assessing Constant Variance Assumption
+## Boxplot
+boxplot(Sales ~ PackageType)
+
+## Numerical summaries
+library(Rcmdr)
+numSummary(Sales, group = PackageType)
+tapply(Sales, PackageType, sd) ## Only look at Std Dev
+
+## Formal tests for equality of variances. No need to run all three
+car::leveneTest(Sales ~ PackageType)
+fligner.test(Sales ~ PackageType)
+bartlett.test(Sales ~ PackageType)
+
+## Residuals versus Fits to assess constant variance
+plot(fitted(model_ex2), residuals(model_ex2))
+
+## Collect residuals and fitted values
+model_ex2 <- lm(Sales ~ PackageType)
+resids_ex2 <- residuals(model_ex2)
+preds_ex2 <- predict(model_ex2)
+
+### Normality test: Anderson-Darling
+nortest::ad.test(resids_ex2)
+
+### Normality test: Histogram
+hist(resids_ex2)
+
+### Normality test: Normal Quantile Plot
+qqnorm(resids_ex2)
+qqline(resids_ex2)
+
+### Run one-way ANOVA
+ANOVA_Ex2 <- aov(Sales ~ PackageType)
+summary(ANOVA_Ex2)
+
+### If not convinced on constant variance assumption, then run Welch's ANOVA
+## Welch's ANOVA.
+oneway.test(Sales ~ PackageType, var.equal = FALSE)
+
+###########
+## Exercise 3
+###########
+
+Ex3 <- read.csv("Exercise 3 - Salespeople Performance.csv")
+
+QuarterlySales <- Ex3$QuarterlySales
+CompScheme <- factor(Ex3$CompensationScheme)
+
+## Collect residuals and fitted values
+model_ex3 <- lm(QuarterlySales ~ CompScheme)
+resids_ex3 <- residuals(model_ex3)
+preds_ex3 <- predict(model_ex3)
+
+### Normality test: Anderson-Darling and Shapiro-Wilk tests
+nortest::ad.test(resids_ex3)
+shapiro.test(resids_ex3)
+
+### Normality test: Histogram
+hist(resids_ex3)
+
+### Normality test: Normal Quantile Plot
+qqnorm(resids_ex3)
+qqline(resids_ex3)
+
+## Formal tests for equality of variances.
+car::leveneTest(QuarterlySales ~ CompScheme)
+fligner.test(QuarterlySales ~ CompScheme)
+
+## Informal tests for equality of variances. Residual versus Fits plot
+plot(preds_ex3, resids_ex3)
+
+## Informal tests for equality of variances. Boxplot
+boxplot(QuarterlySales ~ CompScheme)
+
+## Welch's ANOVA
+oneway.test(QuarterlySales ~ CompScheme, var.equal = FALSE)
+
+## Post-hoc
+install.packages("userfriendlyscience")
+library(userfriendlyscience)
+
+posthocTGH(QuarterlySales, CompScheme, method = "games-howell")
+
+###########
+## Exercise 4
+###########
+
+Ex4 <- read.csv("Exercise 4 - Rebco Payments.csv")
+
+CustomerSize <- factor(Ex4$CustomerSize)
+Days <- Ex4$Days
+Amount <- Ex4$Amount
+
+########################################
+## Focus first on Days Until Payment
+########################################
+
+## Collect the residuals and the fitted values.
+model_ex4 <- lm(Days ~ CustomerSize)
+resids_ex4 <- residuals(model_ex4)
+preds_ex4 <- predict(model_ex4)
+
+## Normality Test: Anderson-Darling
+nortest::ad.test(resids_ex4)
+
+## Normality Test: Histograms
+hist(resids_ex4)
+
+## Normality Test: Normal Quantile Plot
+qqnorm(resids_ex4)
+qqline(resids_ex4)
+
+## Constant Variance Test: Boxplot
+boxplot(Days ~ CustomerSize)
+
+## Constant Variance Test: Residuals versus Fits
+plot(fitted(model_ex4), residuals(model_ex4))
+
+## Constant Variance Test: Levene's
+car::leveneTest(Days ~ CustomerSize)
+
+## Constant Variance Test: Bartlett's
+bartlett.test(Days ~ CustomerSize)
+
+## Run a one-way ANOVA
+ANOVA4 <- aov(Days ~ CustomerSize)
+summary(ANOVA4)
+
+###################################
+## Next Focus on Payment Amounts
+###################################
+
+## Collect the residuals and the fitted values.
+model_ex4t <- lm(Amount ~ CustomerSize)
+resids_ex4t <- residuals(model_ex4t)
+preds_ex4t <- predict(model_ex4t)
+
+## Normality Test: Anderson-Darling
+nortest::ad.test(resids_ex4t)
+
+## Normality Test: Histogram
+hist(resids_ex4t)
+
+## Normality Test: Normal Quantile Plot
+qqnorm(resids_ex4t)
+qqline(resids_ex4t)
+
+## Constant Variance Test: Residuals versus Fits
+plot(fitted(model_ex4t), residuals(model_ex4t))
+
+## Constant Variance Test: Boxplot
+boxplot(Amount ~ CustomerSize)
+
+## Constant Variance Test: Numerical summary
+tapply(Amount, CustomerSize, sd) ## Only look at Std Dev
+
+## Constant Variance Test: Levene's test
+car::leveneTest(Amount ~ CustomerSize)
+
+## Constant Variance Test: Fligner test
+fligner.test(Amount ~ CustomerSize)
+
+### Equal var assumption is violated. So take logs of Dependent var.
+TransformedAmount <- log(Amount)
+
+## Constant Variance Test: Boxplot
+boxplot(TransformedAmount ~ CustomerSize)
+
+## Constant Variance Test: Levene's test
+car::leveneTest(TransformedAmount ~ CustomerSize)
+
+## Constant Variance Test: Fligner test
+fligner.test(TransformedAmount ~ CustomerSize)
+
+## Run the ANOVA for the transformed Model...
+ANOVA4Trans <- aov(TransformedAmount ~ CustomerSize)
+summary(ANOVA4Trans)
+
+## Post-hoc tests
+TukeyHSD(ANOVA4Trans, las = 1)
+
+plot(TukeyHSD(ANOVA4Trans), las = 1)
+
+#######
+## Welch's test instead of Transformation for Amount ~ Customer size.
+#######
+oneway.test(Amount ~ CustomerSize, var.equal = FALSE)
+
+library(userfriendlyscience)
+
+posthocTGH(Amount, CustomerSize, method = "games-howell")
+
+###########
+## Exercise 5
+###########
+Ex5 <- read.csv("Exercise 5 - Gas Price Comparison.csv")
+
+Price <- Ex5$Price
+Brands <- factor(Ex5$Brands)
+Area <- factor(Ex5$MetroArea)
+
+## Collect the residuals and the fitted values.
+model_ex5 <- lm(Price ~ Brands + Area)
+resids_ex5 <- residuals(model_ex5)
+preds_ex5 <- predict(model_ex5)
+
+## Normality Test: Anderson-Darling
+nortest::ad.test(resids_ex5)
+
+## Normality Test: Histogram
+hist(resids_ex5)
+
+## Normality Test: Normal Quantile Plot
+qqnorm(resids_ex5)
+qqline(resids_ex5)
+
+## Constant Variance Test: Residuals versus Fits
+plot(fitted(model_ex5), residuals(model_ex5))
+
+### Run Randomized-Block ANOVA
+ANOVA5 <- aov(Price ~ Brands + Area)
+summary(ANOVA5)
+
+## Post-hoc on Brands (Treatments)
+TukeyHSD(ANOVA5, which = 'Brands', ordered = TRUE)
+plot(TukeyHSD(ANOVA5, which = 'Brands', ordered = TRUE), las = 1)
+
+## Post-hoc on Areas (Blocks) -- usually not required.
+TukeyHSD(ANOVA5, which = 'Area', ordered = TRUE) ## If needed
+plot(TukeyHSD(ANOVA5, which = 'Area', ordered = TRUE), las = 1)
+
+###############
+## Exercise 6
+###############
+
+Ex6 <- read.csv("Exercise 6 - Coke Sales.csv")
+
+Sales <- Ex6$Sales
+Beverage <- factor(Ex6$Beverage)
+Building_Block <- factor(Ex6$Building_Block)
+
+### Collecting the residuals and the fitted values
+model_ex6 <- lm(Sales ~ Beverage + Building_Block)
+resids_ex6 <- residuals(model_ex6)
+## OR
+residuals_Ex6 <- resid(ANOVA6)
+preds_ex6 <- predict(model_ex6)
+
+### Normality: Anderson-Darling Test
+nortest::ad.test(residuals_Ex6)
+
+### Normality: Normal Quantile test
+qqnorm(residuals_Ex6)
+qqline(residuals_Ex6)
+
+### Normality: Shapiro-Wilk Test
+shapiro.test(residuals_Ex6)
+
+### Constant Variance Test - residuals versus fits
+plot(fitted(model_ex6), residuals(model_ex6))
+
+### Run the Randomized Block Model ANOVA
+ANOVA6 <- aov(Sales ~ Beverage + Building_Block)
+summary(ANOVA6)
+
+### Post-hoc for Beverage
+TukeyHSD(ANOVA6, which = 'Beverage', ordered = TRUE)
+plot(TukeyHSD(ANOVA6, which = 'Beverage', ordered = TRUE), las = 1)
+
+### Post-hoc for Building Block (if needed - usually not)
+TukeyHSD(ANOVA6, which = 'Building_Block', ordered = TRUE) ## IF needed ## If needed
+plot(TukeyHSD(ANOVA6, which = 'Building_Block', ordered = TRUE), las = 1)
+
+## Another option for post-hoc - agricolae package
+library(agricolae)
+tukey.test.res <- HSD.test(ANOVA9, trt = 'Beverage')
+tukey.test.res
+
+############
+## Exercise 7
+############
+
+Ex7 <- read.csv("Exercise 7 - Accounting Wages.csv")
+
+Gender <- Ex7$Gender
+Sector <- Ex7$Sector
+Wage <- Ex7$Wage
+
+### Two-Factor ANOVA Model
+Model_7 <- aov(Wage ~ Gender + Sector + Gender*Sector)
+summary(Model_7)
+
+### Interaction Plots - only one needed. But plotting both might be more insightful.
+interaction.plot(Gender, Sector, Wage)
+interaction.plot(Sector, Gender, Wage)
+
+############
+## Exercise 8
+############
+
+Ex8 <- read.csv("Exercise 8 - Class Config.csv")
+
+Participation <- Ex8$Participation
+Times <- factor(Ex8$Times)
+Config <- factor(Ex8$Config)
+
+### Run the two-factor ANOVA model
+Model_8 <- aov(Participation ~ Times + Config + Times*Config)
+summary(Model_8)
+
+### Interaction Plots - only one needed. But plotting both might be more insightful.
+interaction.plot(Times, Config, Participation)
+interaction.plot(Config, Times, Participation)
+
+############
+## Exercise 9
+############
+
+Ex9 <- read.csv("Exercise 9 - Consumer Reports.csv")
+
+Class <- factor(Ex9$Class)
+Type <- factor(Ex9$Type)
+MPG <- Ex9$MPG
+
+### Run the two-factor ANOVA model
+Model_9 <- aov(MPG ~ Class + Type + Class*Type)
+summary(Model_9)
+
+### Interaction Plots - only one needed. But plotting both might be more insightful.
+interaction.plot(Class, Type, MPG)
+interaction.plot(Type, Class, MPG)
